@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ profile.name }} — {{ profile.role }}</title>
+<meta name="description" content="{{ profile.summary[:155] }}">
+<meta property="og:title" content="{{ profile.name }} — {{ profile.role }}">
+<meta property="og:description" content="{{ profile.tagline }}">
+<meta property="og:type" content="profile">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%232f6bff'/><text y='68' x='50' text-anchor='middle' font-size='52' font-family='sans-serif' font-weight='700' fill='white'>J</text></svg>">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="i-home"><path d="M3 9.5 10 4l7 5.5V16a1 1 0 0 1-1 1h-3.5v-4.5h-5V17H4a1 1 0 0 1-1-1z"/></g>
+    <g id="i-briefcase"><rect x="2.5" y="6" width="15" height="10.5" rx="2"/><path d="M7 6V4.5A1.5 1.5 0 0 1 8.5 3h3A1.5 1.5 0 0 1 13 4.5V6"/></g>
+    <g id="i-layers"><path d="M10 2.8 17.5 7 10 11.2 2.5 7z"/><path d="m3.5 10.5 6.5 3.7 6.5-3.7"/></g>
+    <g id="i-chip"><rect x="5.5" y="5.5" width="9" height="9" rx="1.8"/><path d="M8 2.5v3M12 2.5v3M8 14.5v3M12 14.5v3M2.5 8h3M2.5 12h3M14.5 8h3M14.5 12h3"/></g>
+    <g id="i-cap"><path d="M10 3.5 18 7.5 10 11.5 2 7.5z"/><path d="M5.5 9.2v4c0 1.4 2 2.6 4.5 2.6s4.5-1.2 4.5-2.6v-4"/></g>
+    <g id="i-mail"><rect x="2.5" y="4.5" width="15" height="11" rx="2"/><path d="m3 6 7 5 7-5"/></g>
+    <g id="i-spark"><path d="M10 2.5 11.8 8 17.5 10 11.8 12 10 17.5 8.2 12 2.5 10 8.2 8z"/></g>
+    <g id="i-send"><path d="M3 10h11M9.5 5.5 14 10l-4.5 4.5"/></g>
+    <g id="i-download"><path d="M10 3v9M6.5 8.5 10 12l3.5-3.5M4 15.5h12"/></g>
+    <g id="i-check"><path d="m4.5 10.5 3.5 3.5 7.5-8"/></g>
+    <g id="i-code"><path d="m7 6-4 4 4 4M13 6l4 4-4 4"/></g>
+    <g id="i-cloud"><path d="M6 15h8.5a3 3 0 0 0 .3-6A5 5 0 0 0 5.4 8.2 3.4 3.4 0 0 0 6 15z"/></g>
+    <g id="i-close"><path d="m5.5 5.5 9 9M14.5 5.5l-9 9"/></g>
+    <g id="i-menu"><path d="M3 6h14M3 10h14M3 14h9"/></g>
+    <g id="i-user"><circle cx="10" cy="7" r="3.2"/><path d="M4 16.5a6 6 0 0 1 12 0"/></g>
+  </defs>
+</svg>
+
+<div class="app" id="app">
+
+  <!-- ───────────────────────── sidebar ───────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="side-head">
+      <div class="who">
+        <img class="avatar" src="{{ url_for('static', filename=profile.photo) }}"
+             alt="{{ profile.name }}" width="36" height="36"
+             onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'avatar',textContent:'{{ profile.initials }}'}))">
+        <span class="who-text">
+          <strong>{{ profile.name.split(' ')[0] }} {{ profile.name.split(' ')[-1] }}</strong>
+          <small>{{ profile.role }}</small>
+        </span>
+      </div>
+      <button class="icon-btn side-toggle" id="sidebarClose" aria-label="Close menu">
+        <svg class="ic" viewBox="0 0 20 20"><use href="#i-close"/></svg>
+      </button>
+    </div>
+
+    <nav class="nav" id="nav">
+      {% for item in nav %}
+      <button class="nav-item{% if loop.first %} active{% endif %}" data-section="{{ item.id }}">
+        <span>{{ item.label }}</span>
+        <svg class="ic" viewBox="0 0 20 20"><use href="#i-{{ item.icon }}"/></svg>
+      </button>
+      {% endfor %}
+    </nav>
+
+    <div class="side-block">
+      <p class="side-label">Recent questions</p>
+      <div id="recentList" class="recent">
+        <p class="recent-empty">Ask the assistant anything below.</p>
+      </div>
+    </div>
+
+    <div class="side-foot">
+      <div class="promo">
+        <div class="promo-top">
+          <span class="pulse{% if not profile.available %} off{% endif %}"></span>
+          <strong>{{ 'Available for work' if profile.available else 'Not currently looking' }}</strong>
+        </div>
+        <p>{{ profile.availability_note }}</p>
+        <a class="btn btn-primary btn-block" href="mailto:{{ profile.email }}">Get in touch</a>
+      </div>
+      <a class="side-link" href="{{ profile.linkedin }}" target="_blank" rel="noopener">
+        LinkedIn <span>&#8599;</span>
+      </a>
+    </div>
+  </aside>
+
+  <div class="scrim" id="scrim"></div>
+
+  <!-- ───────────────────────── main ───────────────────────── -->
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="sidebarOpen" aria-label="Open menu">
+        <svg class="ic" viewBox="0 0 20 20"><use href="#i-menu"/></svg>
+      </button>
+      <div class="chips">
+        <span class="chip chip-accent">AI Engineering</span>
+        <span class="chip">Python</span>
+        <span class="chip">LangChain · RAG</span>
+        <span class="chip hide-sm">AWS</span>
+      </div>
+      <div class="topbar-right">
+        <span class="chip chip-soft">{{ profile.location.split(',')[0] }}</span>
+        <a class="btn btn-ghost" href="{{ url_for('resume') }}" target="_blank" rel="noopener">
+          <svg class="ic" viewBox="0 0 20 20"><use href="#i-download"/></svg> Resume
+        </a>
+      </div>
+    </header>
+
+    <div class="scroll" id="scroll">
+
+      <!-- ══════════ OVERVIEW ══════════ -->
+      <section class="section active" id="s-home">
+
+        <!-- split hero: statement left, live assistant right -->
+        <div class="splithero">
+          <div class="splithero-copy">
+            <span class="eyebrow">
+              <span class="pulse{% if not profile.available %} off{% endif %}"></span>
+              {{ hero.eyebrow }}
+            </span>
+
+            <h1 class="display">
+              {{ hero.line_1 }} <em>{{ hero.accent }}</em>{% if hero.line_2 %} {{ hero.line_2 }}{% endif %}
+            </h1>
+
+            <p class="display-sub">{{ hero.sub }}</p>
+
+            <div class="cta-row">
+              <button class="btn btn-gradient" id="heroAsk">
+                <svg class="ic" viewBox="0 0 20 20"><use href="#i-spark"/></svg>
+                {{ hero.primary_cta }}
+              </button>
+              <a class="btn btn-outline" href="{{ url_for('resume') }}" target="_blank" rel="noopener">
+                {{ hero.secondary_cta }}
+              </a>
+            </div>
+
+            <div class="proof">
+              <img class="proof-photo" src="{{ url_for('static', filename=profile.photo) }}"
+                   alt="{{ profile.name }}" width="40" height="40"
+                   onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'proof-photo mono',textContent:'{{ profile.initials }}'}))">
+              <div>
+                <strong>{{ experience[0].role }}</strong>
+                <p>{{ experience[0].company }} · {{ hero.proof }}</p>
+              </div>
+            </div>
+          </div>
+
+          <aside class="splithero-card">
+            <div class="askcard">
+              <span class="askcard-icon">
+                <svg class="ic" viewBox="0 0 20 20"><use href="#i-spark"/></svg>
+              </span>
+              <h3>Interview me in 30 seconds</h3>
+              <p class="askcard-sub">Grounded in my resume — it can't make things up</p>
+
+              <label class="askcard-label">Pick a question</label>
+              <div class="askcard-options">
+                {% for q in prompts[:3] %}
+                <button class="askcard-option{% if loop.first %} selected{% endif %}" data-q="{{ q }}">
+                  {{ q }}
+                </button>
+                {% endfor %}
+              </div>
+
+              <button class="btn btn-gradient btn-block" id="askcardGo">
+                <svg class="ic" viewBox="0 0 20 20"><use href="#i-send"/></svg> Ask
+              </button>
+
+              <p class="askcard-foot">
+                <span class="dot{% if not engine.live %} off{% endif %}"></span>
+                {{ engine.provider }} · answers cite the resume section they came from
+              </p>
+            </div>
+          </aside>
+        </div>
+
+        <!-- what I actually do -->
+        <div class="grid three focus-grid">
+          {% for f in focus %}
+          <article class="card focuscard t-{{ f.tone }}">
+            <span class="focus-icon"><svg class="ic" viewBox="0 0 20 20"><use href="#i-{{ f.icon }}"/></svg></span>
+            <h3 class="card-title">{{ f.title }}</h3>
+            <p class="lede">{{ f.text }}</p>
+            <div class="stack">
+              {% for t in f.tools %}<span class="pill">{{ t }}</span>{% endfor %}
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+
+        <div class="block-head">
+          <h3>By the numbers</h3>
+          <span class="muted small">Every figure below is on the resume</span>
+        </div>
+        <div class="grid metrics">
+          {% for m in metrics %}
+          <article class="card metric t-{{ m.tone }}">
+            <p class="metric-label">{{ m.label }}</p>
+            <p class="metric-value">{{ m.value }}</p>
+            <p class="metric-detail">{{ m.detail }}</p>
+            <span class="tag">{{ m.trend }}</span>
+          </article>
+          {% endfor %}
+        </div>
+
+        <div class="grid two">
+          <article class="card note">
+            <p class="card-eyebrow">
+              <svg class="ic" viewBox="0 0 20 20"><use href="#i-spark"/></svg> The short version
+            </p>
+            <p class="lede">{{ profile.summary }}</p>
+            <p class="lede muted">{{ profile.pitch }}</p>
+          </article>
+
+          <article class="card">
+            <p class="card-eyebrow">
+              <svg class="ic" viewBox="0 0 20 20"><use href="#i-briefcase"/></svg> Currently
+            </p>
+            {% set job = experience[0] %}
+            <h3 class="card-title">{{ job.role }}</h3>
+            <p class="muted small">{{ job.company }} · {{ job.period }}</p>
+            <p class="lede">{{ job.summary }}</p>
+            <div class="stack">
+              {% for s in job.stack %}<span class="pill">{{ s }}</span>{% endfor %}
+            </div>
+            <button class="btn btn-ghost btn-sm jump" data-section="experience">See full history &rarr;</button>
+          </article>
+        </div>
+
+        <div class="block-head">
+          <h3>Featured work</h3>
+          <button class="btn btn-ghost btn-sm jump" data-section="projects">All projects &rarr;</button>
+        </div>
+        <div class="grid two">
+          {% for p in projects if p.featured %}
+          <article class="card project t-{{ p.tone }}">
+            <div class="project-top">
+              <span class="tag">{{ p.category }}</span>
+              <span class="impact">{{ p.impact }}</span>
+            </div>
+            <h3 class="card-title">{{ p.name }}</h3>
+            <p class="lede">{{ p.blurb }}</p>
+            <div class="stack">
+              {% for s in p.stack %}<span class="pill">{{ s }}</span>{% endfor %}
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+
+        <div class="block-head">
+          <h3>Ask the assistant</h3>
+          <span class="engine-badge" title="Answers are grounded in the resume via local retrieval">
+            <span class="dot{% if not engine.live %} off{% endif %}"></span>
+            {{ engine.provider }}
+          </span>
+        </div>
+        <div class="grid prompts">
+          {% for q in prompts %}
+          <button class="card prompt ask" data-q="{{ q }}">
+            <svg class="ic" viewBox="0 0 20 20"><use href="#i-spark"/></svg>
+            <span>{{ q }}</span>
+          </button>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- ══════════ EXPERIENCE ══════════ -->
+      <section class="section" id="s-experience">
+        <div class="hero small">
+          <h1>Experience</h1>
+          <h2>Production delivery first, applied AI on top.</h2>
+        </div>
+        <div class="timeline">
+          {% for job in experience %}
+          <article class="card job{% if job.current %} current{% endif %}">
+            <div class="job-head">
+              <div>
+                <h3 class="card-title">{{ job.role }}</h3>
+                <p class="muted small">{{ job.company }} · {{ job.location }}</p>
+              </div>
+              <div class="job-meta">
+                <span class="tag{% if job.current %} tag-live{% endif %}">{{ job.status }}</span>
+                <p class="muted small">{{ job.period }}</p>
+              </div>
+            </div>
+            <p class="lede">{{ job.summary }}</p>
+            <ul class="bullets">
+              {% for point in job.points %}
+              <li><svg class="ic tick" viewBox="0 0 20 20"><use href="#i-check"/></svg><span>{{ point }}</span></li>
+              {% endfor %}
+            </ul>
+            <div class="stack">
+              {% for s in job.stack %}<span class="pill">{{ s }}</span>{% endfor %}
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- ══════════ PROJECTS ══════════ -->
+      <section class="section" id="s-projects">
+        <div class="hero small">
+          <h1>Projects</h1>
+          <h2>Things built end to end, with the numbers attached.</h2>
+        </div>
+        <div class="grid two">
+          {% for p in projects %}
+          <article class="card project t-{{ p.tone }}">
+            <div class="project-top">
+              <span class="tag">{{ p.category }}</span>
+              <span class="impact">{{ p.impact }}</span>
+            </div>
+            <h3 class="card-title">{{ p.name }}</h3>
+            <p class="lede">{{ p.blurb }}</p>
+            <ul class="bullets tight">
+              {% for d in p.details %}
+              <li><svg class="ic tick" viewBox="0 0 20 20"><use href="#i-check"/></svg><span>{{ d }}</span></li>
+              {% endfor %}
+            </ul>
+            <div class="stack">
+              {% for s in p.stack %}<span class="pill">{{ s }}</span>{% endfor %}
+            </div>
+            {% if p.case_study %}
+            <button class="case-link jump" data-section="about">
+              Read the technical write-up &rarr;
+            </button>
+            {% endif %}
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- ══════════ CASE STUDY ══════════ -->
+      <section class="section" id="s-about">
+        <div class="hero small">
+          <span class="eyebrow">
+            <svg class="ic" viewBox="0 0 20 20"><use href="#i-user"/></svg> {{ about.eyebrow }}
+          </span>
+          <h1>{{ about.title }}</h1>
+        </div>
+
+        <div class="bio">
+          <img class="bio-photo" src="{{ url_for('static', filename=profile.photo) }}"
+               alt="{{ profile.name }}" width="112" height="112"
+               onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'bio-photo mono',textContent:'{{ profile.initials }}'}))">
+          <div class="bio-text">
+            {% for para in about.bio %}<p>{{ para }}</p>{% endfor %}
+            <div class="bio-actions">
+              <a class="btn btn-primary btn-sm" href="mailto:{{ profile.email }}">Get in touch</a>
+              <a class="btn btn-ghost btn-sm" href="{{ profile.linkedin }}" target="_blank" rel="noopener">LinkedIn &#8599;</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="block-head">
+          <h3>{{ about.build_title }}</h3>
+          <span class="muted small">A technical write-up of this site</span>
+        </div>
+        <p class="display-sub build-lede">{{ about.lede }}</p>
+
+        <div class="grid metrics">
+          {% for s in about.stats %}
+          <article class="card metric t-purple">
+            <p class="metric-value">{{ s.value }}</p>
+            <p class="metric-label">{{ s.label }}</p>
+            <p class="metric-detail">{{ s.detail }}</p>
+          </article>
+          {% endfor %}
+        </div>
+
+        <div class="block-head"><h3>How a question becomes an answer</h3></div>
+        <ol class="flow">
+          {% for f in about.flow %}
+          <li class="flowstep">
+            <span class="flownum">{{ f.step }}</span>
+            <div>
+              <strong>{{ f.name }}</strong>
+              <p>{{ f.text }}</p>
+            </div>
+          </li>
+          {% endfor %}
+        </ol>
+
+        <div class="block-head">
+          <h3>Decisions &amp; trade-offs</h3>
+          <span class="muted small">The part that's actually the portfolio</span>
+        </div>
+        <div class="grid two">
+          {% for d in about.decisions %}
+          <article class="card decision t-{{ d.tone }}">
+            <span class="decision-call">{{ d.call }}</span>
+            <h3 class="card-title">{{ d.title }}</h3>
+            <p class="lede">{{ d.why }}</p>
+          </article>
+          {% endfor %}
+        </div>
+
+        <div class="grid two" style="margin-top:12px">
+          <article class="card note">
+            <p class="card-eyebrow">
+              <svg class="ic" viewBox="0 0 20 20"><use href="#i-check"/></svg> Guardrails
+            </p>
+            <ul class="bullets tight">
+              {% for g in about.guardrails %}
+              <li><svg class="ic tick" viewBox="0 0 20 20"><use href="#i-check"/></svg><span>{{ g }}</span></li>
+              {% endfor %}
+            </ul>
+          </article>
+
+          <article class="card">
+            <p class="card-eyebrow">
+              <svg class="ic" viewBox="0 0 20 20"><use href="#i-layers"/></svg> What I'd build next
+            </p>
+            <ul class="bullets tight">
+              {% for n in about.next %}
+              <li><svg class="ic tick" viewBox="0 0 20 20"><use href="#i-send"/></svg><span>{{ n }}</span></li>
+              {% endfor %}
+            </ul>
+            <div class="stack">
+              {% for s in about.stack %}<span class="pill">{{ s }}</span>{% endfor %}
+            </div>
+          </article>
+        </div>
+
+        <details class="buglog">
+          <summary class="buglog-head">
+            <span class="buglog-title">Build log — bugs found and fixed</span>
+            <span class="buglog-count">{{ bugs | length }}</span>
+            <span class="buglog-chev" aria-hidden="true">&rsaquo;</span>
+          </summary>
+          <p class="buglog-note">
+            Every one of these shipped broken before it was caught. Kept here because how a
+            system fails says more than how it looks when it works.
+          </p>
+          <ol class="buglist">
+            {% for bug in bugs %}
+            <li>
+              <details class="bug">
+                <summary>
+                  <span class="bug-id">{{ bug.id }}</span>
+                  <span class="bug-name">{{ bug.title }}</span>
+                  <span class="bug-chev" aria-hidden="true">&rsaquo;</span>
+                </summary>
+                <dl class="bug-body">
+                  <dt>Symptom</dt><dd>{{ bug.symptom }}</dd>
+                  <dt>Cause</dt><dd>{{ bug.cause }}</dd>
+                  <dt>Fix</dt><dd>{{ bug.fix }}</dd>
+                </dl>
+              </details>
+            </li>
+            {% endfor %}
+          </ol>
+        </details>
+
+        <div class="card cta-card">
+          <div>
+            <h3 class="card-title">Test the claims yourself</h3>
+            <p class="lede">Ask it something the resume doesn't cover and watch it decline instead of guessing.</p>
+          </div>
+          <button class="btn btn-gradient ask" data-q="What programming languages does he NOT know?">
+            <svg class="ic" viewBox="0 0 20 20"><use href="#i-spark"/></svg> Try to break it
+          </button>
+        </div>
+      </section>
+
+      <!-- ══════════ SKILLS ══════════ -->
+      <section class="section" id="s-skills">
+        <div class="hero small">
+          <h1>Skills</h1>
+          <h2>Depth in Python and quality engineering, focus on LLM systems.</h2>
+        </div>
+        <div class="grid two">
+          {% for g in skill_groups %}
+          <article class="card skillgroup{% if g.focus %} focus{% endif %}">
+            <p class="card-eyebrow">
+              <svg class="ic" viewBox="0 0 20 20"><use href="#i-{{ g.icon }}"/></svg> {{ g.name }}
+              {% if g.focus %}<span class="tag tag-live">primary focus</span>{% endif %}
+            </p>
+            <div class="stack big">
+              {# g['items'] not g.items -- Jinja would resolve the dict method first #}
+              {% for item in g['items'] %}<span class="pill">{{ item }}</span>{% endfor %}
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- ══════════ EDUCATION ══════════ -->
+      <section class="section" id="s-education">
+        <div class="hero small">
+          <h1>Education &amp; training</h1>
+          <h2>Formal degree plus a deliberate AI engineering track.</h2>
+        </div>
+        <div class="grid two">
+          {% for e in education %}
+          <article class="card">
+            <p class="card-eyebrow"><svg class="ic" viewBox="0 0 20 20"><use href="#i-cap"/></svg> Degree</p>
+            <h3 class="card-title">{{ e.degree }}</h3>
+            <p class="muted small">{{ e.school }}</p>
+            <div class="kv"><span>{{ e.period }}</span><span class="tag">{{ e.score }}</span></div>
+          </article>
+          {% endfor %}
+          <article class="card note">
+            <p class="card-eyebrow"><svg class="ic" viewBox="0 0 20 20"><use href="#i-spark"/></svg> Certifications</p>
+            <ul class="certs">
+              {% for c in certifications %}
+              <li>
+                <div>
+                  <strong>{{ c.name }}</strong>
+                  <p class="muted small">{{ c.issuer }} — {{ c.detail }}</p>
+                </div>
+                <span class="tag{% if c.status == 'In Progress' %} tag-live{% endif %}">{{ c.status }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <!-- ══════════ CONTACT ══════════ -->
+      <section class="section" id="s-contact">
+        <div class="hero small">
+          <h1>Get in touch</h1>
+          <h2>{{ profile.availability_note }}.</h2>
+        </div>
+        <div class="grid two">
+          <article class="card note">
+            <p class="card-eyebrow"><svg class="ic" viewBox="0 0 20 20"><use href="#i-mail"/></svg> Direct</p>
+            <div class="contact-rows">
+              <a class="contact-row" href="mailto:{{ profile.email }}">
+                <span>Email</span><strong>{{ profile.email }}</strong>
+              </a>
+              <a class="contact-row" href="tel:{{ profile.phone | replace(' ', '') }}">
+                <span>Phone</span><strong>{{ profile.phone }}</strong>
+              </a>
+              <a class="contact-row" href="{{ profile.linkedin }}" target="_blank" rel="noopener">
+                <span>LinkedIn</span><strong>View profile &#8599;</strong>
+              </a>
+              <div class="contact-row static">
+                <span>Location</span><strong>{{ profile.location }}</strong>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <p class="card-eyebrow"><svg class="ic" viewBox="0 0 20 20"><use href="#i-download"/></svg> Resume</p>
+            <p class="lede">Full one-page resume with every metric referenced across this site.</p>
+            <a class="btn btn-primary" href="{{ url_for('resume') }}" target="_blank" rel="noopener">
+              <svg class="ic" viewBox="0 0 20 20"><use href="#i-download"/></svg> Open resume (PDF)
+            </a>
+            <p class="muted small mt">Prefer to ask first? Use the assistant below — it answers from this exact resume.</p>
+          </article>
+        </div>
+      </section>
+
+      <div class="scroll-pad"></div>
+    </div>
+
+    <!-- ───────────────────────── chat ───────────────────────── -->
+    <div class="chatdock">
+      <div class="chatpanel" id="chatPanel" hidden>
+        <div class="chatpanel-head">
+          <div>
+            <strong>Resume assistant</strong>
+            <span class="engine-badge sm">
+              <span class="dot{% if not engine.live %} off{% endif %}"></span>{{ engine.provider }}
+            </span>
+          </div>
+          <button class="icon-btn" id="chatClose" aria-label="Close chat">
+            <svg class="ic" viewBox="0 0 20 20"><use href="#i-close"/></svg>
+          </button>
+        </div>
+        <div class="messages" id="messages"></div>
+      </div>
+
+      <form class="composer" id="composer" autocomplete="off">
+        <span class="composer-icon"><svg class="ic" viewBox="0 0 20 20"><use href="#i-spark"/></svg></span>
+        <input id="input" type="text" maxlength="1000"
+               placeholder="Ask anything about {{ profile.name.split(' ')[0] }}'s experience, projects or fit…">
+        <button class="send" id="send" type="submit" aria-label="Send">
+          <svg class="ic" viewBox="0 0 20 20"><use href="#i-send"/></svg>
+        </button>
+      </form>
+      <p class="composer-note">Grounded in the resume. Answers may be imperfect — verify anything critical.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+  window.PORTFOLIO = {
+    prompts: {{ prompts | tojson }},
+    engine: {{ engine | tojson }},
+    firstName: {{ profile.name.split(' ')[0] | tojson }}
+  };
+</script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

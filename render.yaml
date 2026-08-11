@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: jeetendra-portfolio
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # 2 workers x 4 threads is plenty; the LLM call is I/O bound, not CPU bound.
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.6"
+      - key: FLASK_DEBUG
+        value: "0"
+      # Set this in the Render dashboard, not here -- never commit a key.
+      - key: GROQ_API_KEY
+        sync: false

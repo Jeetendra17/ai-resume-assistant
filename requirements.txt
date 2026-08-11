@@ -1,0 +1,9 @@
+# Core -- everything the site needs to run.
+Flask==3.1.0
+gunicorn==23.0.0
+python-dotenv==1.0.1
+
+# LLM providers are called over plain HTTP (stdlib urllib), so Groq, Gemini,
+# OpenRouter, Cerebras, Mistral, Together, Ollama and OpenAI need no extra packages.
+# Uncomment only if you want to use Anthropic Claude, which uses its official SDK:
+# anthropic>=0.69.0
