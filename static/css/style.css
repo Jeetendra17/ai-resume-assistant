@@ -1016,6 +1016,13 @@ a { color: inherit; text-decoration: none; }
 
 /* ── responsive ────────────────────────────────────────────────────────── */
 
+/* Desktop sidebar collapse. Below 980px the sidebar is a drawer and `.open`
+   drives it; above that it's a static flex child, so closing needs its own
+   state — and the topbar menu button has to come back as the way to restore it,
+   otherwise the close button is a one-way trip. */
+.app.sidebar-collapsed .sidebar { display: none; }
+.app.sidebar-collapsed .menu-btn { display: grid; }
+
 .scrim { display: none; }
 
 @media (max-width: 980px) {

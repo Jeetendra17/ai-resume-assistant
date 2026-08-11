@@ -34,6 +34,9 @@
 
   /* ── sidebar (mobile) ────────────────────────────────────────────────── */
 
+  const app = $('#app');
+  const isDrawer = () => window.matchMedia('(max-width: 980px)').matches;
+
   function openSidebar() {
     sidebar.classList.add('open');
     scrim.classList.add('show');
@@ -43,9 +46,28 @@
     scrim.classList.remove('show');
   }
 
-  $('#sidebarOpen').addEventListener('click', openSidebar);
-  $('#sidebarClose').addEventListener('click', closeSidebar);
+  /* The same two buttons mean different things per breakpoint: below 980px the
+     sidebar is an overlay drawer, above it the sidebar is part of the layout and
+     has to collapse instead. Without the branch, the close button did nothing at
+     all on desktop. */
+  $('#sidebarOpen').addEventListener('click', () => {
+    if (isDrawer()) openSidebar();
+    else app.classList.remove('sidebar-collapsed');
+  });
+
+  $('#sidebarClose').addEventListener('click', () => {
+    if (isDrawer()) closeSidebar();
+    else app.classList.add('sidebar-collapsed');
+  });
+
   scrim.addEventListener('click', closeSidebar);
+
+  // Leaving the collapsed state stuck while crossing the breakpoint would hide
+  // the drawer's own trigger, so clear it on the way down.
+  window.matchMedia('(max-width: 980px)').addEventListener('change', (e) => {
+    if (e.matches) app.classList.remove('sidebar-collapsed');
+    else closeSidebar();
+  });
 
   /* ── tiny markdown renderer ──────────────────────────────────────────────
      The assistant replies in light markdown (bold, bullets, paragraphs).

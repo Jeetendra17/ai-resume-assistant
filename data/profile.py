@@ -566,6 +566,24 @@ BUGS = [
             "reply doesn't leave dead space. Reported by a user, not caught in testing."
         ),
     },
+    {
+        "id": "10",
+        "title": "The sidebar close button did nothing on desktop",
+        "symptom": (
+            "Clicking the close control in the sidebar header had no effect on a desktop "
+            "window. No error, no movement, nothing."
+        ),
+        "cause": (
+            "Below the breakpoint the sidebar is an overlay drawer driven by a state class; "
+            "above it, the sidebar is part of the page layout, so that same class is inert. "
+            "One handler was written for both. The button had never worked on desktop."
+        ),
+        "fix": (
+            "The control now branches on breakpoint: dismiss the drawer on small screens, "
+            "collapse the layout column on large ones. Collapsing also reveals the header "
+            "menu button, since without a way back the close button would be a one-way trip."
+        ),
+    },
 ]
 
 EDUCATION = [
