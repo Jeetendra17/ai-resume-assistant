@@ -97,7 +97,18 @@
 
   $('#chatClose').addEventListener('click', () => { panel.hidden = true; });
 
-  function addBubble(who, html, sources) {
+  /* Scroll so a message's first line is at the top of the viewport.
+     Answers can run several paragraphs; scrolling to the bottom (the natural
+     chat behaviour) drops the reader at the last line and they have to scroll
+     back up to find the start. Clamped so short answers don't leave a gap. */
+  function scrollToStartOf(row) {
+    const delta = row.getBoundingClientRect().top - messages.getBoundingClientRect().top;
+    const target = messages.scrollTop + delta - 12;
+    const max = messages.scrollHeight - messages.clientHeight;
+    messages.scrollTop = Math.max(0, Math.min(target, max));
+  }
+
+  function addBubble(who, html, sources, { align = 'end' } = {}) {
     const row = document.createElement('div');
     row.className = `msg ${who === 'me' ? 'me' : 'bot'}`;
 
@@ -123,7 +134,8 @@
 
     row.append(avatar, bubble);
     messages.appendChild(row);
-    messages.scrollTop = messages.scrollHeight;
+    if (align === 'start') scrollToStartOf(row);
+    else messages.scrollTop = messages.scrollHeight;
     return row;
   }
 
@@ -166,7 +178,7 @@
       typing.remove();
 
       const answer = data.answer || 'Something went wrong. Try again in a moment.';
-      addBubble('bot', renderMarkdown(answer), data.sources);
+      addBubble('bot', renderMarkdown(answer), data.sources, { align: 'start' });
 
       history_.push({ role: 'user', content: text });
       history_.push({ role: 'assistant', content: answer });

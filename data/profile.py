@@ -550,6 +550,22 @@ BUGS = [
             "the true error. Only found it because the answers named their own source."
         ),
     },
+    {
+        "id": "09",
+        "title": "Long answers opened at their last line",
+        "symptom": (
+            "Ask something with a multi-paragraph answer and the chat jumped to the bottom of "
+            "it, so you landed on the closing sentence and had to scroll back up to read."
+        ),
+        "cause": (
+            "Standard chat behaviour is to pin the newest message to the bottom, which is right "
+            "for short turns and wrong for anything taller than the panel."
+        ),
+        "fix": (
+            "New answers now scroll their first line to the top instead, clamped so a short "
+            "reply doesn't leave dead space. Reported by a user, not caught in testing."
+        ),
+    },
 ]
 
 EDUCATION = [
