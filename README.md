@@ -1,5 +1,7 @@
 # Jeetendra Kumar Patel — AI Engineer Portfolio
 
+**Live: <https://jeetendra.vercel.app>**
+
 A Flask portfolio built as a light dashboard, with a resume-grounded assistant that
 recruiters can question directly.
 
@@ -161,17 +163,19 @@ Set `SITE_URL=https://your-domain` (OpenRouter uses it for attribution) and conf
 
 ```
 portfolio/
-├── app.py                 Flask routes, rate limiting
+├── app.py                 Flask routes, rate limiting, live-computed About stats
 ├── core/
-│   ├── rag.py             BM25 retrieval over resume chunks
+│   ├── rag.py             BM25 retrieval: stemming, phrase norm, weighted expansion
 │   ├── providers.py       Pluggable LLM backends
 │   └── llm.py             Prompt assembly, provider chain, fallback
 ├── data/
-│   ├── profile.py         ← single source of truth
+│   ├── profile.py         ← single source of truth (content, About, build log)
 │   └── knowledge.py       Profile → retrieval chunks
+├── eval_retrieval.py      36-case retrieval eval; exits non-zero on failure
 ├── templates/index.html
-├── static/{css,js,files}
-└── Procfile · render.yaml · Dockerfile · vercel.json
+├── static/{css,js,img,files}
+├── DEPLOYMENT_PLAN.md     Free hosting, step by step
+└── Procfile · render.yaml · Dockerfile · vercel.json · .vercelignore
 ```
 
 ## API
