@@ -52,13 +52,17 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open <http://localhost:5000/api/health>. You want:
+Open <http://localhost:5000/api/health?probe=1>. The `probe` parameter makes one real
+API call — without it you only learn that a key is *present*, not that it *works*.
+You want:
 
 ```json
 {
   "status": "ok",
   "engine": {
     "live": true,
+    "reachable": true,
+    "probe": "ok",
     "provider": "Groq",
     "model": "llama-3.3-70b-versatile",
     "fallbacks": []
@@ -68,7 +72,7 @@ Open <http://localhost:5000/api/health>. You want:
 
 (`fallbacks` lists any additional providers in the chain — empty if you set only one key.)
 
-If `provider` says `"Local resume index"`, the key isn't being read — fix that now,
+If `provider` says `"Resume index (no model)"`, the key isn't being read — fix that now,
 not after deploying.
 
 ### 1.3 Final content pass
@@ -220,7 +224,7 @@ Run these against the live URL, not localhost:
 ```bash
 URL=https://your-app.vercel.app
 
-curl -s $URL/api/health
+curl -s "$URL/api/health?probe=1"    # proves the key works, not just that it exists
 curl -s -o /dev/null -w "home:   %{http_code}\n" $URL/
 curl -s -o /dev/null -w "resume: %{http_code}\n" $URL/resume
 curl -s -o /dev/null -w "css:    %{http_code}\n" $URL/static/css/style.css
@@ -230,7 +234,7 @@ curl -s -X POST $URL/api/chat -H "Content-Type: application/json" \
 
 Checklist:
 
-- [ ] `/api/health` reports `"live": true` and your provider name
+- [ ] `/api/health?probe=1` reports `"reachable": true` and `"probe": "ok"`
 - [ ] All four routes return `200`
 - [ ] Chat returns a real answer with a `sources` array
 - [ ] Open the site on a phone — sidebar collapses to the hamburger
@@ -313,7 +317,9 @@ hand-written prose — keep it honest if you change how the system works.
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `"provider": "Local resume index"` | key missing or not applied | Check exact var name, set for Production, redeploy |
+| `"provider": "Resume index (no model)"` | key missing or not applied | Check exact var name, set for Production, redeploy |
+| Health looks live but answers come from the index | provider rejecting calls | `curl "$URL/api/health?probe=1"` — the `probe` field carries the real error |
+| `HTTP 403: error code: 1010` | CDN blocked the user-agent | Already fixed; ensure `USER_AGENT` in `core/providers.py` is still sent |
 | Chat returns the fallback wording | every provider failed | Check quota; add a second provider key |
 | Vercel: `FUNCTION_INVOCATION_TIMEOUT` | LLM call exceeded the window | Set `LLM_TIMEOUT=6` |
 | First Render visit takes ~50s | free instance slept | Add the UptimeRobot monitor (§3B) |

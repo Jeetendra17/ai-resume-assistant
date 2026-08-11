@@ -16,6 +16,11 @@ import urllib.request
 
 TIMEOUT = float(os.environ.get("LLM_TIMEOUT", "45"))
 
+# urllib's default User-Agent ("Python-urllib/3.x") is rejected by Cloudflare in
+# front of several provider APIs -- Groq returns HTTP 403 "error code: 1010"
+# before the request ever reaches them. Any ordinary UA string gets through.
+USER_AGENT = "jeetendra-portfolio/1.0 (+https://github.com/jeetendra-portfolio)"
+
 
 class ProviderError(RuntimeError):
     pass
@@ -25,6 +30,7 @@ def _post_json(url, payload, headers, timeout=TIMEOUT):
     body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=body, method="POST")
     req.add_header("Content-Type", "application/json")
+    req.add_header("User-Agent", USER_AGENT)
     for key, value in headers.items():
         req.add_header(key, value)
     try:

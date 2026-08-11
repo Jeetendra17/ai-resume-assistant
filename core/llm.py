@@ -53,14 +53,38 @@ def chain():
     return _chain
 
 
-def engine_status():
+def engine_status(probe=False):
+    """Engine state. `configured` is cheap; `reachable` costs one real API call.
+
+    These are deliberately separate. A configured key that the provider rejects
+    still reports configured=True -- which once made health look green while every
+    answer silently fell back to extractive. Pass probe=True to actually find out.
+    """
     active = chain()
-    return {
+    status = {
         "live": bool(active),
-        "provider": active[0].label if active else "Local resume index",
+        "provider": active[0].label if active else "Resume index (no model)",
         "model": active[0].model if active else "bm25-retrieval",
         "fallbacks": [p.label for p in active[1:]],
     }
+
+    if probe:
+        if not active:
+            status["reachable"] = False
+            status["probe"] = "no provider configured"
+        else:
+            try:
+                reply = active[0].complete(
+                    "Reply with the single word: ok",
+                    [{"role": "user", "content": "ping"}],
+                )
+                status["reachable"] = bool(reply)
+                status["probe"] = "ok"
+            except Exception as exc:
+                status["reachable"] = False
+                status["probe"] = f"{type(exc).__name__}: {exc}"[:200]
+
+    return status
 
 
 def _fallback_answer(hits):
@@ -95,7 +119,7 @@ def answer(question, history=None):
             "answer": "Ask me anything about Jeetendra's experience.",
             "sources": [],
             "live": False,
-            "provider": "Local resume index",
+            "provider": "Resume index (no model)",
         }
 
     context, hits, grounded = build_context(question)
@@ -111,7 +135,7 @@ def answer(question, history=None):
             "sources": [],
             "live": False,
             "grounded": False,
-            "provider": "Local resume index",
+            "provider": "Resume index (no model)",
             "model": "bm25-retrieval",
         }
 
@@ -151,6 +175,6 @@ def answer(question, history=None):
         "answer": _fallback_answer(hits),
         "sources": sources,
         "live": False,
-        "provider": "Local resume index",
+        "provider": "Resume index (no model)",
         "model": "bm25-retrieval",
     }

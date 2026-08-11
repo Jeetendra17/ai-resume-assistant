@@ -11,7 +11,13 @@ try:  # optional: lets local dev pick up a .env without exporting vars by hand
 
     load_dotenv()
 except ImportError:
-    pass
+    # Silently skipping is fine in production (real env vars, no .env file), but
+    # locally it looks like the key was ignored for no reason -- so say something.
+    if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")):
+        print(
+            "[warn] .env found but python-dotenv is not installed, so it was NOT loaded.\n"
+            "       pip install python-dotenv   (or export the vars manually)"
+        )
 
 from core import llm
 from data.profile import (
@@ -138,7 +144,13 @@ def chat():
 
 @app.route("/api/health")
 def health():
-    return jsonify({"status": "ok", "engine": llm.engine_status()})
+    """`?probe=1` makes one real provider call to prove the key actually works.
+
+    Kept opt-in so uptime monitors pinging this every few minutes don't burn a
+    free-tier quota.
+    """
+    probe = request.args.get("probe") in ("1", "true", "yes")
+    return jsonify({"status": "ok", "engine": llm.engine_status(probe=probe)})
 
 
 @app.route("/resume")

@@ -75,7 +75,7 @@ Providers are tried in this order, and the first one with a key set wins:
 | 7 | Ollama (local) | Free, offline | `USE_OLLAMA=1` | <https://ollama.com> |
 | 8 | Anthropic Claude | Paid | `ANTHROPIC_API_KEY` | <https://console.anthropic.com> |
 | 9 | OpenAI | Paid | `OPENAI_API_KEY` | <https://platform.openai.com/api-keys> |
-| — | Local resume index | Always | *(none)* | built in |
+| — | Resume index (no model) | Always | *(none)* | built in |
 
 Set **two or more** keys and you get automatic failover: if Groq is rate limited, the
 request falls through to Gemini, and so on down to the local index.
@@ -138,7 +138,7 @@ harmless here.
 ### After deploying
 
 Set `SITE_URL=https://your-domain` (OpenRouter uses it for attribution) and confirm
-`GET /api/health` reports the provider you expect.
+`GET /api/health?probe=1` reports `"reachable": true`.
 
 ---
 
@@ -147,7 +147,8 @@ Set `SITE_URL=https://your-domain` (OpenRouter uses it for attribution) and conf
 | Want to change | Edit |
 |---|---|
 | Any resume content, metrics, projects, links | `data/profile.py` |
-| The case-study writeup | `CASE_STUDY` in `data/profile.py` |
+| The About write-up | `ABOUT` in `data/profile.py` |
+| The build log | `BUGS` in `data/profile.py` |
 | How questions map to resume sections | `_SYNONYMS` in `core/rag.py` |
 | Assistant tone and guardrails | `SYSTEM_PROMPT` in `core/llm.py` |
 | Add a provider | subclass `OpenAICompatible` in `core/providers.py`, add it to `ALL_PROVIDERS` |
@@ -179,5 +180,5 @@ portfolio/
 |---|---|---|
 | `/` | GET | The site |
 | `/api/chat` | POST | `{message, history[]}` → `{answer, sources[], live, provider, model}` |
-| `/api/health` | GET | Active provider and failover chain |
+| `/api/health` | GET | Configured provider + chain. `?probe=1` makes one real call to prove it works |
 | `/resume` | GET | Resume PDF |

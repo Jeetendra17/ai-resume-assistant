@@ -529,6 +529,25 @@ BUGS = [
             "gives up and degrades gracefully inside the platform's window."
         ),
     },
+    {
+        "id": "08",
+        "title": "Every model call was failing, and the health check said fine",
+        "symptom": (
+            "With a valid key configured, health reported the engine live — but every answer "
+            "came back from the local index instead of the model."
+        ),
+        "cause": (
+            "Two faults stacked. The HTTP layer sent Python's default user-agent, which the "
+            "CDN in front of the provider rejects outright before the request reaches them. "
+            "And the health check only asked whether a key was present, never whether the "
+            "provider would actually answer — so the graceful fallback hid the failure."
+        ),
+        "fix": (
+            "Set a real user-agent on every request, and split health into a cheap "
+            "\"configured\" check and an opt-in probe that makes one live call and reports "
+            "the true error. Only found it because the answers named their own source."
+        ),
+    },
 ]
 
 EDUCATION = [
