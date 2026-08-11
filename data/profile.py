@@ -584,6 +584,24 @@ BUGS = [
             "menu button, since without a way back the close button would be a one-way trip."
         ),
     },
+    {
+        "id": "11",
+        "title": "The status badge named a provider that wasn't answering",
+        "symptom": (
+            "With a rejected key, the badge on the page still displayed that provider's name "
+            "with a green dot, while every reply was actually coming from the local index."
+        ),
+        "cause": (
+            "The badge was rendered from what was configured, not from what responded — the "
+            "same wrong assumption behind an earlier bug, which I fixed in the health endpoint "
+            "and then failed to carry through to the part visitors actually see."
+        ),
+        "fix": (
+            "Every reply already reports which engine produced it, so the badge is now "
+            "corrected from that on the first answer. Probing at page load would be honest "
+            "too, but it would spend a real API call on every visitor."
+        ),
+    },
 ]
 
 EDUCATION = [

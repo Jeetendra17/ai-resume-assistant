@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#10151f; --ink2:#414b5c; --ink3:#78839a;
+    --line:#e6e9ef; --card:#fff; --panel:#f4f6f9;
+    --blue:#2f6bff; --blue-s:#e8efff;
+    --purple:#7c5cff; --purple-s:#efeaff;
+    --green:#12a06a; --green-s:#e2f5ec;
+    --amber:#b3821a; --amber-s:#fdf6e0; --amber-l:#f0e3b8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    width:1600px;height:730px;
+    background:linear-gradient(180deg,#e9edf5 0%,#eef1f6 45%,#eaeef6 100%);
+    font-family:Inter,-apple-system,"Segoe UI",sans-serif;
+    color:var(--ink);
+    padding:52px 56px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:7px 15px;border:1px solid var(--line);border-radius:999px;
+    background:#fff;font-size:14px;font-weight:500;color:var(--ink2);
+    box-shadow:0 1px 2px rgba(16,21,31,.05);
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+  h1{font-size:46px;letter-spacing:-.035em;line-height:1.1;margin:20px 0 8px;font-weight:700}
+  h1 em{font-family:Georgia,serif;font-style:italic;font-weight:400;
+        background:linear-gradient(100deg,#5b46f5,#9b6bff);-webkit-background-clip:text;color:transparent}
+  .sub{font-size:18px;color:var(--ink3);margin-bottom:34px}
+
+  .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;align-items:stretch}
+  .step{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:20px 18px;box-shadow:0 2px 6px rgba(16,21,31,.06);position:relative;
+  }
+  .num{
+    width:28px;height:28px;border-radius:9px;display:grid;place-items:center;
+    font-size:13px;font-weight:700;background:var(--purple-s);color:var(--purple);margin-bottom:12px;
+  }
+  .step h3{font-size:19px;font-weight:600;letter-spacing:-.015em;margin-bottom:6px}
+  .step p{font-size:14px;line-height:1.5;color:var(--ink3)}
+  .badge{
+    display:inline-block;margin-top:12px;padding:4px 11px;border-radius:999px;
+    font-size:12px;font-weight:600;background:var(--panel);border:1px solid var(--line);color:var(--ink2);
+  }
+  .badge.b{background:var(--blue-s);border-color:#cfdcff;color:var(--blue)}
+  .badge.g{background:var(--green-s);border-color:#c7e9d8;color:var(--green)}
+  .badge.p{background:var(--purple-s);border-color:#ddd4ff;color:var(--purple)}
+
+  .arrow{position:absolute;right:-19px;top:50%;transform:translateY(-50%);
+         font-size:22px;color:#c3cbdb;z-index:2;font-weight:300}
+
+  .rail{margin-top:26px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .fb{
+    border:1px dashed #d3d9e6;border-radius:16px;padding:18px 20px;background:rgba(255,255,255,.6);
+    display:flex;gap:14px;align-items:flex-start;
+  }
+  .fb .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none;
+          font-size:15px;font-weight:700}
+  .fb.one .ic{background:var(--amber-s);border:1px solid var(--amber-l);color:var(--amber)}
+  .fb.two .ic{background:var(--green-s);border:1px solid #c7e9d8;color:var(--green)}
+  .fb h4{font-size:16px;font-weight:600;margin-bottom:3px}
+  .fb p{font-size:14px;line-height:1.5;color:var(--ink3)}
+
+  .foot{margin-top:30px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .stat{
+    background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 20px;
+    box-shadow:0 1px 2px rgba(16,21,31,.05);
+  }
+  .stat b{display:block;font-size:26px;letter-spacing:-.03em;line-height:1}
+  .stat span{font-size:13px;color:var(--ink3)}
+  .stat.p b{color:var(--purple)} .stat.b b{color:var(--blue)}
+  .stat.g b{color:var(--green)} .stat.a b{color:var(--amber)}
+  .url{margin-left:auto;font-size:16px;color:var(--ink2);font-weight:500}
+</style>
+</head>
+<body>
+  <span class="eyebrow"><span class="dot"></span>Live at jeetendra.vercel.app</span>
+  <h1>How the assistant <em>actually answers</em></h1>
+  <p class="sub">Retrieval runs locally. Generation is replaceable. Neither can invent an employer, a date or a number.</p>
+
+  <div class="flow">
+    <div class="step">
+      <div class="num">1</div><div class="arrow">›</div>
+      <h3>Question</h3>
+      <p>A recruiter asks in plain language — “is he a fit?”, not resume keywords.</p>
+      <span class="badge">natural language</span>
+    </div>
+    <div class="step">
+      <div class="num">2</div><div class="arrow">›</div>
+      <h3>Retrieve</h3>
+      <p>BM25 scores every resume chunk in-process. Stemming and phrase rules bridge hiring language to resume wording.</p>
+      <span class="badge b">0.04 ms · no vector DB</span>
+    </div>
+    <div class="step">
+      <div class="num">3</div><div class="arrow">›</div>
+      <h3>Ground</h3>
+      <p>Top chunks become a labelled context block. The prompt forbids answering outside it.</p>
+      <span class="badge p">constrained</span>
+    </div>
+    <div class="step">
+      <div class="num">4</div><div class="arrow">›</div>
+      <h3>Generate</h3>
+      <p>First healthy provider answers. Groq → Gemini → Cerebras → OpenRouter → …</p>
+      <span class="badge">9 providers · auto-failover</span>
+    </div>
+    <div class="step">
+      <div class="num">5</div>
+      <h3>Cite</h3>
+      <p>The reply carries the resume sections it drew from, so every claim is checkable.</p>
+      <span class="badge g">sources attached</span>
+    </div>
+  </div>
+
+  <div class="rail">
+    <div class="fb one">
+      <div class="ic">!</div>
+      <div>
+        <h4>Nothing matches the question</h4>
+        <p>It says the resume doesn’t cover it and points to my email — decided before any model is called, so there’s nothing to hallucinate with.</p>
+      </div>
+    </div>
+    <div class="fb two">
+      <div class="ic">✓</div>
+      <div>
+        <h4>Every provider is unreachable</h4>
+        <p>It returns the matching resume text verbatim instead of an error page. The site answers with zero API keys configured.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="stat p"><b>36/36</b><span>retrieval eval, gated on every deploy</span></div>
+    <div class="stat b"><b>0.04 ms</b><span>retrieval per query</span></div>
+    <div class="stat g"><b>9</b><span>interchangeable providers</span></div>
+    <div class="stat a"><b>$0</b><span>monthly hosting + inference</span></div>
+    <div class="url">Python · Flask · BM25/RAG · Groq</div>
+  </div>
+</body>
+</html>

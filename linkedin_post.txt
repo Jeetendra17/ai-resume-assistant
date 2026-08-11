@@ -32,6 +32,9 @@ Every bug I hit while building it is documented on the site itself — including
 
 Stack: Python, Flask, BM25/RAG, Groq, vanilla JS. Deployed free.
 
+Try it yourself — this link opens with the question already answered:
+https://jeetendra.vercel.app/?ask=What%20has%20he%20actually%20shipped%20with%20LLMs%3F
+
 Live: https://jeetendra.vercel.app
 Code: https://github.com/Jeetendra17/ai-resume-assistant
 

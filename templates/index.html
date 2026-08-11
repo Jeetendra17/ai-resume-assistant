@@ -175,8 +175,8 @@
               </button>
 
               <p class="askcard-foot">
-                <span class="dot{% if not engine.live %} off{% endif %}"></span>
-                {{ engine.provider }} · answers cite the resume section they came from
+                <span class="dot{% if not engine.live %} off{% endif %}" data-engine-dot></span>
+                <span data-engine-name>{{ engine.provider }}</span> · answers cite the resume section they came from
               </p>
             </div>
           </aside>
@@ -258,8 +258,8 @@
         <div class="block-head">
           <h3>Ask the assistant</h3>
           <span class="engine-badge" title="Answers are grounded in the resume via local retrieval">
-            <span class="dot{% if not engine.live %} off{% endif %}"></span>
-            {{ engine.provider }}
+            <span class="dot{% if not engine.live %} off{% endif %}" data-engine-dot></span>
+            <span data-engine-name>{{ engine.provider }}</span>
           </span>
         </div>
         <div class="grid prompts">
@@ -582,7 +582,7 @@
           <div>
             <strong>Resume assistant</strong>
             <span class="engine-badge sm">
-              <span class="dot{% if not engine.live %} off{% endif %}"></span>{{ engine.provider }}
+              <span class="dot{% if not engine.live %} off{% endif %}" data-engine-dot></span><span data-engine-name>{{ engine.provider }}</span>
             </span>
           </div>
           <button class="icon-btn" id="chatClose" aria-label="Close chat">

@@ -108,6 +108,17 @@
   const history_ = [];
   let busy = false;
 
+  /* The badge rendered at page load reflects which provider is *configured*, not
+     which one actually responds — a rejected key still shows its provider name.
+     Every answer reports who really produced it, so correct the badge from that.
+     Probing on page load would be honest too, but it would spend a real API call
+     on every visitor. */
+  function setEngine(name, live) {
+    if (!name) return;
+    $$('[data-engine-name]').forEach((el) => { el.textContent = name; });
+    $$('[data-engine-dot]').forEach((el) => { el.classList.toggle('off', !live); });
+  }
+
   function openPanel() {
     if (panel.hidden) {
       panel.hidden = false;
@@ -200,6 +211,7 @@
       typing.remove();
 
       const answer = data.answer || 'Something went wrong. Try again in a moment.';
+      setEngine(data.provider, data.live);
       addBubble('bot', renderMarkdown(answer), data.sources, { align: 'start' });
 
       history_.push({ role: 'user', content: text });
