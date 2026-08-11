@@ -83,6 +83,11 @@
       <a class="side-link" href="{{ profile.linkedin }}" target="_blank" rel="noopener">
         LinkedIn <span>&#8599;</span>
       </a>
+      {% if profile.github %}
+      <a class="side-link" href="{{ profile.github }}" target="_blank" rel="noopener">
+        Source code <span>&#8599;</span>
+      </a>
+      {% endif %}
     </div>
   </aside>
 
@@ -324,9 +329,16 @@
               {% for s in p.stack %}<span class="pill">{{ s }}</span>{% endfor %}
             </div>
             {% if p.case_study %}
-            <button class="case-link jump" data-section="about">
-              Read the technical write-up &rarr;
-            </button>
+            <div class="project-links">
+              <button class="case-link jump" data-section="about">
+                Read the technical write-up &rarr;
+              </button>
+              {% if p.source %}
+              <a class="case-link" href="{{ p.source }}" target="_blank" rel="noopener">
+                View source &#8599;
+              </a>
+              {% endif %}
+            </div>
             {% endif %}
           </article>
           {% endfor %}
@@ -539,6 +551,11 @@
               <a class="contact-row" href="{{ profile.linkedin }}" target="_blank" rel="noopener">
                 <span>LinkedIn</span><strong>View profile &#8599;</strong>
               </a>
+              {% if profile.github %}
+              <a class="contact-row" href="{{ profile.github }}" target="_blank" rel="noopener">
+                <span>GitHub</span><strong>Source for this site &#8599;</strong>
+              </a>
+              {% endif %}
               <div class="contact-row static">
                 <span>Location</span><strong>{{ profile.location }}</strong>
               </div>

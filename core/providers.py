@@ -19,7 +19,7 @@ TIMEOUT = float(os.environ.get("LLM_TIMEOUT", "45"))
 # urllib's default User-Agent ("Python-urllib/3.x") is rejected by Cloudflare in
 # front of several provider APIs -- Groq returns HTTP 403 "error code: 1010"
 # before the request ever reaches them. Any ordinary UA string gets through.
-USER_AGENT = "jeetendra-portfolio/1.0 (+https://github.com/jeetendra-portfolio)"
+USER_AGENT = "jeetendra-portfolio/1.0 (+https://github.com/Jeetendra17/ai-resume-assistant)"
 
 
 class ProviderError(RuntimeError):

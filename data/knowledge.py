@@ -36,10 +36,15 @@ def _identity_chunks():
     yield {
         "id": "availability",
         "title": "Availability and contact",
-        "tags": ["contact", "email", "phone", "hire", "available", "reach", "linkedin"],
+        "tags": [
+            "contact", "email", "phone", "hire", "available", "reach", "linkedin",
+            "github", "source", "code", "repo", "website", "link",
+        ],
         "text": (
             f"{PROFILE['availability_note']}. Email: {PROFILE['email']}. "
             f"Phone: {PROFILE['phone']}. LinkedIn: {PROFILE['linkedin']}. "
+            f"GitHub / source code for this site: {PROFILE['github']}. "
+            f"Live site: {PROFILE['site']}. "
             f"Located in {PROFILE['location']}."
         ),
     }

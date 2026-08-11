@@ -14,7 +14,8 @@ PROFILE = {
     "email": "jeetendrapatel1711@gmail.com",
     "phone": "+91 7000957216",
     "linkedin": "https://linkedin.com/in/jeetendra-kumar-patel-b73650239",
-    "github": "",
+    "github": "https://github.com/Jeetendra17/ai-resume-assistant",
+    "site": "https://jeetendra.vercel.app",
     "resume_file": "Jeetendra_Kumar_Patel_AI_Engineer_Resume.pdf",
     "photo": "img/profile.jpg",
     "available": True,
@@ -233,6 +234,7 @@ PROJECTS = [
             "Answers cite the resume section they came from, so a recruiter can check the source.",
         ],
         "stack": ["Python", "Flask", "BM25", "RAG", "Groq", "Gemini", "Vanilla JS"],
+        "source": "https://github.com/Jeetendra17/ai-resume-assistant",
         "tone": "purple",
     },
     {
