@@ -249,6 +249,11 @@
 
   input.addEventListener('focus', openPanel);
 
+  /* ?ask=... opens the page with that question already answered, so a link can
+     point straight at a specific answer rather than at an empty chat box. */
+  const preset = new URLSearchParams(location.search).get('ask');
+  if (preset) ask(preset);
+
   document.addEventListener('keydown', (e) => {
     if (e.key === '/' && document.activeElement !== input) {
       e.preventDefault();

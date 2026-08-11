@@ -1,0 +1,58 @@
+# LinkedIn post — draft
+
+Copy everything between the lines. LinkedIn strips markdown, so this uses plain
+text with arrows and line breaks instead of bold/bullets.
+
+---
+
+Most portfolios describe what someone can build.
+
+I wanted mine to actually run it.
+
+So I built a portfolio with an AI assistant that answers recruiter questions from my resume — and only from my resume.
+
+How it works:
+
+Question → BM25 retrieval over resume chunks → grounded context → LLM → answer, plus the exact section it came from.
+
+Four decisions I'd defend in an interview:
+
+→ BM25, not embeddings. The corpus is ~30 short chunks. A vector database would add a network hop, a cold start, and a bill for recall I couldn't measure a gain from. Retrieval runs in-process in 0.04 ms.
+
+→ Nine interchangeable LLM providers. Groq, Gemini, Cerebras, OpenRouter and others sit behind one adapter with automatic failover. A rate limit on one is invisible to the visitor.
+
+→ It still answers with zero API keys. If every provider is unreachable, it returns the matching resume text directly instead of an error page. Design the failure path first, then make the happy path better than it.
+
+→ It declines what it doesn't know. Ask about something my resume doesn't cover and it says so, instead of padding the answer with my career summary.
+
+But the part I'm most proud of isn't a feature.
+
+Someone asked it "what have you actually shipped with LLMs?" — and it returned a Kotlin chat app and a Java CRUD app. Completely wrong.
+
+The cause was mine. Broad query synonyms were matching every project chunk equally and drowning out the one word that actually mattered.
+
+So I wrote an evaluation set: 29 questions that must retrieve the right section, and 7 that must retrieve nothing at all. It reproduced the failure at 26/29. I fixed the scoring until it hit 36/36. It now runs as a gate before every deploy.
+
+That's the habit I brought with me from quality engineering: a system isn't done when it produces output. It's done when you can show it produces the right output.
+
+Every bug I hit while building it is documented on the site itself — including the one where writing about a bug reintroduced it.
+
+Stack: Python, Flask, BM25/RAG, Groq, vanilla JS. Deployed free.
+
+Live: https://jeetendra.vercel.app
+Code: https://github.com/Jeetendra17/ai-resume-assistant
+
+Open to AI Engineer / ML Engineer roles — always happy to talk retrieval, grounding and evaluation.
+
+#AIEngineering #RAG #LLM #Python #MachineLearning #OpenToWork
+
+---
+
+## Notes
+
+- First two lines are what shows before "see more" — they carry the hook.
+- The bug story is the strongest part. It shows judgement, not just tooling.
+- No claim here is unverifiable: every number is measured by `eval_retrieval.py`
+  or printed by the running app.
+- If you want it shorter, cut the four decisions to two (BM25 and zero-keys) and
+  keep the bug story intact — that's the part people will reply to.
