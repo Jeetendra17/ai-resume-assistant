@@ -1,0 +1,15 @@
+# Never upload secrets or local-only files to the build.
+# Vercel falls back to .gitignore when this file is absent, but being explicit
+# means a secret can't ride along if .gitignore is ever edited.
+#
+# NOTE: eval_retrieval.py must NOT be excluded -- app.py imports it at startup to
+# compute the live eval score shown in the About section.
+.env
+.env.*
+!.env.example
+
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.vercel
