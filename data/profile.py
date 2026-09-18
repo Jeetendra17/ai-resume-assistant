@@ -21,17 +21,19 @@ PROFILE = {
     "available": True,
     "availability_note": "Open to AI Engineer / ML Engineer roles",
     "summary": (
-        "Associate Software Engineer at Venera Technologies, converted to full-time after a "
-        "6-month internship that delivered 150 automated Python test scripts, 120 validated API "
-        "endpoints and zero critical defects shipped across AWS cloud-native microservices. "
-        "Strong foundation in SDLC, OOP and quality engineering, now building on it with applied "
-        "AI engineering — LLMs, LangChain, LangGraph, Hugging Face and RAG."
+        "Associate Software Engineer at Venera Technologies and primary engineer on the company's "
+        "first generative-AI feature — a RAG-based chatbot on Qwen models that generates QC "
+        "templates for Pulsar, their legacy on-premise product, from plain language. Built it from "
+        "scratch with an external AI consultant and own both the implementation and the testing. "
+        "Before that, a 6-month internship that delivered 150 automated Python test scripts, 120 "
+        "validated API endpoints and zero critical defects shipped across AWS cloud-native "
+        "microservices."
     ),
     "pitch": (
-        "I bring something most junior AI engineers do not: production discipline. I have shipped "
-        "into a real AWS cloud media platform, owned release readiness, and measured everything I "
-        "built. I am applying that same rigour to LLM systems — retrieval quality, grounding and "
-        "latency are things I measure, not things I assume."
+        "I bring something most junior AI engineers do not: I have shipped generative AI into a "
+        "real product, and I came to it from production quality engineering. That means grounding, "
+        "output validation and an evaluation set are where I start, not what I add later — because "
+        "on a legacy product an invalid generated template is a support ticket, not a demo."
     ),
 }
 
@@ -43,12 +45,13 @@ HERO = {
     "accent": "ship production software",
     "line_2": "",
     "sub": (
-        "Associate Software Engineer at Venera Technologies by day, building LLM and RAG "
-        "systems the rest of the time. Everything below has a number attached to it."
+        "Primary engineer on Venera Technologies' first generative-AI feature — a RAG chatbot on "
+        "Qwen that generates QC templates from plain language — after a year of production quality "
+        "engineering. Everything below has a number or a shipped thing attached to it."
     ),
     "primary_cta": "Ask my AI assistant",
     "secondary_cta": "View resume",
-    "proof": "Zero critical defects across 7 production builds",
+    "proof": "Shipped generative AI into a production product",
 }
 
 # Three-up "what I actually do" strip under the hero.
@@ -114,14 +117,18 @@ SKILL_GROUPS = [
         "icon": "sparkle",
         "focus": True,
         "items": [
+            "RAG",
+            "Qwen (open-weight)",
             "LLMs (OpenAI API)",
             "LangChain",
             "LangGraph",
             "Hugging Face Transformers",
-            "RAG",
+            "Fine-tuning (LoRA)",
             "Pinecone",
             "Embeddings",
             "Prompt Engineering",
+            "Structured Output",
+            "LLM Evaluation",
             "NLP",
             "Streamlit",
         ],
@@ -163,12 +170,15 @@ EXPERIENCE = [
         "period": "Aug 2026 - Present",
         "current": True,
         "status": "Current",
-        "summary": "Full-time conversion after a 6-month internship. Working across the full SDLC on Venera's media QC platform — Quasar (cloud, AWS) and Pulsar (on-premise).",
+        "summary": "Converted to full-time in August and moved onto applied AI. Since then my primary work has been a RAG-based generative-AI chatbot, built from scratch on Qwen models with an external AI consultant, that turns a plain-language description into a QC template inside Pulsar — Venera's legacy on-premise product. I own both the implementation and the testing of it.",
         "points": [
-            "Contribute across the full SDLC using OOP principles and QA best practices to improve product quality and reliability for Venera's cloud media QC platform.",
-            "Collaborate with dev and product teams to define acceptance criteria, review test strategies and ensure AWS cloud-native release readiness — reducing defect escape rate sprint over sprint.",
+            "Primary engineer on Venera's first generative-AI feature: a retrieval-augmented chatbot that generates QC templates for Pulsar, the legacy on-premise product, from a plain-language description instead of manual configuration. Built from scratch and owned end to end since August.",
+            "Built on Qwen open-weight models, working alongside an external professional AI consultant — chosen so the model runs within the on-premise product rather than calling a third-party API, which the legacy deployment and its customers require.",
+            "Own the implementation: retrieval over the existing template corpus and schema so generations are grounded in real templates, prompt design, and structured-output validation so a malformed or invalid template can never reach the product.",
+            "Own the testing too — the evaluation set the chatbot is scored against, covering both the templates it must generate correctly and the requests it must refuse rather than guess at.",
+            "Continue to contribute across the full SDLC using OOP principles and QA best practices, and work with dev and product to define acceptance criteria and AWS cloud-native release readiness.",
         ],
-        "stack": ["Python", "AWS", "OOP", "SDLC", "CI/CD"],
+        "stack": ["Python", "Generative AI", "RAG", "Qwen", "Prompt Engineering", "Structured Output", "AWS", "SDLC"],
     },
     {
         "role": "Graduate Trainee / QA Engineer",
@@ -600,6 +610,29 @@ BUGS = [
             "Every reply already reports which engine produced it, so the badge is now "
             "corrected from that on the first answer. Probing at page load would be honest "
             "too, but it would spend a real API call on every visitor."
+        ),
+    },
+    {
+        "id": "12",
+        "title": "A question word was missing from the stopword list",
+        "symptom": (
+            "Asked where he works, the assistant returned the personal bio instead of the "
+            "current role. It had passed this case for months and broke the moment the "
+            "experience section was edited."
+        ),
+        "cause": (
+            "One interrogative was absent from the stopword list while all its siblings "
+            "were present, so it scored as a rare, highly discriminating content word. It "
+            "happened to appear in the bio prose and not in the experience entry, so the "
+            "phrasing of the question outranked its subject. Rewriting the experience text "
+            "only changed which chunk won a contest that was being decided on the wrong "
+            "terms in the first place."
+        ),
+        "fix": (
+            "Added the missing word, and moved the time adverbs in that question into the "
+            "phrase-normalisation table so they map onto the vocabulary the resume actually "
+            "uses for the present role. The eval caught this on a content edit that had "
+            "nothing to do with retrieval, which is the entire argument for having it."
         ),
     },
 ]

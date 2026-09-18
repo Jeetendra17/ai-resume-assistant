@@ -28,7 +28,7 @@ _STOPWORDS = {
     "do", "does", "for", "from", "had", "has", "have", "he", "her", "him", "his", "how", "i",
     "if", "in", "is", "it", "its", "me", "much", "of", "on", "or", "she", "so", "some", "tell",
     "that", "the", "their", "them", "there", "they", "this", "to", "was", "were", "what", "when",
-    "which", "who", "why", "will", "with", "would", "you", "your",
+    "where", "which", "who", "why", "will", "with", "would", "you", "your",
 }
 
 # Suffixes stripped longest-first; a stem shorter than this is left alone so
@@ -55,6 +55,11 @@ _SYNONYMS = {
     "llm": ["llm", "openai", "langchain", "rag", "prompt", "transformer", "nlp", "huggingface"],
     "model": ["llm", "openai", "transformer"],
     "ml": ["llm", "nlp", "learn"],
+    # "right now" / "currently" are how visitors ask about the present role; the
+    # resume expresses that as "Current", "Present" and "Ongoing".
+    "now": ["current", "present", "ongo"],
+    "current": ["current", "present", "ongo"],
+    "today": ["current", "present"],
     "product": ["experience", "aws", "deploy", "release"],
     "rag": ["rag", "pinecone", "langchain", "retrieval", "embedding"],
     "ship": ["built", "deliver", "shipped"],
@@ -73,6 +78,15 @@ _PHRASES = (
     ("vector database", "pinecone embedding"),
     ("vector search", "pinecone embedding"),
     ("retrieval augmented generation", "rag"),
+    # Recruiters ask about the present role with time adverbs; the resume says
+    # "Current" / "Present". Left as synonyms these scored as rare content words
+    # and pulled in whichever chunk happened to contain the phrasing — a
+    # question about where he works returned the personal bio, because the bio
+    # prose contains "right" and "now" and the experience entry does not.
+    ("right now", "current"),
+    ("at the moment", "current"),
+    ("these days", "current"),
+    ("currently", "current"),
 )
 
 
