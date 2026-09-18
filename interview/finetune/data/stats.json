@@ -1,0 +1,13 @@
+{
+  "train": 159,
+  "val": 20,
+  "answer_examples": 163,
+  "refusal_examples": 16,
+  "target_words_mean": 83.7,
+  "system_prompt": "v3",
+  "contamination": {
+    "val_vs_train_near_duplicates": [],
+    "retrieval_eval_questions_near_verbatim_in_train": [],
+    "note": "Retrieval-eval questions are reworded paraphrases of corpus questions by design, so a model fine-tuned on this corpus has seen the *answers* those questions target. Evaluate a fine-tuned model on the val split, not on the retrieval eval."
+  }
+}

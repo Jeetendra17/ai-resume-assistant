@@ -1,0 +1,727 @@
+[
+ {
+  "id": "01-1-1",
+  "question": "Is Jeetendra a fit for an AI Engineer role?",
+  "answer": "For a junior-to-mid AI Engineer role, yes, and the reason is narrower than \"he knows LangChain\".\n\nHe is the primary engineer on Venera Technologies' first generative-AI feature — a\nretrieval-augmented chatbot built on Qwen open-weight models that generates QC templates for\nPulsar, their legacy on-premise product, from a plain-language description instead of manual\nconfiguration. He built it from scratch alongside an external AI consultant, and he owns both\nthe implementation and the testing of it. That is production generative AI inside a real\nproduct with real customers, not a weekend demo."
+ },
+ {
+  "id": "01-1-2",
+  "question": "What has he actually shipped with LLMs?",
+  "answer": "One thing in production, and several built end to end outside it.\n\n**In production, at Venera Technologies:** the Pulsar template-generation chatbot. A user\ndescribes the QC template they want in plain language; the system retrieves against the\nexisting template corpus and schema, generates a candidate template grounded in those, validates\nthe structured output against the schema, and refuses rather than guessing when the request is\noutside what it can produce. It runs on Qwen open-weight models specifically so the model runs\ninside the on-premise deployment rather than calling a third-party API — which is what that\nproduct and its customers require. He is the primary engineer on it and has owned it since\nAugust."
+ },
+ {
+  "id": "01-1-3",
+  "question": "He has about a year of experience. Why should we interview him over someone with five?",
+  "answer": "If you need five years of experience, hire the person with five years. That is a real answer and\nthe corpus is not going to argue you out of it.\n\nThe case for the interview is that the relevant experience in this field is not five years old.\nProduction RAG, structured output from language models, open-weight model deployment and LLM\nevaluation are mostly a two-to-three-year-old discipline in industry. A candidate with five years\nof software experience and six months of LLM exposure is not obviously ahead of one with one\nyear of software experience and eight months of owning an LLM feature in production."
+ },
+ {
+  "id": "01-1-4",
+  "question": "What kind of role is he actually looking for?",
+  "answer": "AI Engineer or ML Engineer roles, with a preference for ones where the work is building\nLLM-backed product features rather than research.\n\nConcretely, the work he is best matched to: retrieval systems and RAG pipelines, LLM application\nengineering — prompting, grounding, structured outputs, integration — and the evaluation and\nguardrail layer that makes those reliable enough to put in front of users. That is what he does\nat Venera now and what every project outside work has been about."
+ },
+ {
+  "id": "01-1-5",
+  "question": "Summarise his background in thirty seconds.",
+  "answer": "Jeetendra Kumar Patel is an AI Engineer based in Noida, currently Associate Software Engineer at\nVenera Technologies.\n\nHe joined Venera in February 2026 as a graduate trainee on the QA side of their media quality\ncontrol platform, working across Quasar (the AWS cloud product) and Pulsar (the on-premise one).\nOver six months he wrote 150 automated Python test scripts with Selenium and the Page Object\nModel, cutting manual regression time by 65%; validated 120 REST API endpoints across AWS\nmicroservices at a 98.3% pass rate; and shipped seven consecutive builds with zero critical\ndefects reaching production, including intercepting a severity-1 failure and coordinating a\nsame-day hotfix. That converted into a full-time offer in August."
+ },
+ {
+  "id": "01-1-7",
+  "question": "What are his strongest measurable results?",
+  "answer": "The numbers on his resume, with the context that makes them mean something:"
+ },
+ {
+  "id": "01-1-8",
+  "question": "Does he have production experience, or only project experience?",
+  "answer": "Production, and it is the more established half of his record.\n\nHe has worked on Venera's media quality control platform since February 2026 — first as a\ngraduate trainee and QA engineer, then full-time from August. That platform has two products:\nQuasar, which is cloud-native on AWS, and Pulsar, which is deployed on-premise at customer\nsites. He has worked across both."
+ },
+ {
+  "id": "01-1-9",
+  "question": "Why did he move from QA into AI engineering?",
+  "answer": "The short version is that the move happened at work rather than away from it — Venera needed\nsomeone to build their first generative-AI feature and he was the person who took it on, which\nis a better transition story than leaving to do a course.\n\nThe longer version is about what QA taught him that turned out to be the scarce skill. Six months\nof quality engineering on a live platform is six months of learning that a system is not done\nwhen it produces output — it is done when you can show it produces the *right* output. He watched\na severity-1 failure get caught an hour before release because someone bothered to check."
+ },
+ {
+  "id": "01-1-10",
+  "question": "What is he learning right now?",
+  "answer": "Three things, with different levels of depth.\n\n**Formally:** the AI Engineer Bootcamp 2026 through 365 Careers on Udemy, currently in progress.\nIt covers LLMs, NLP, LangChain, LangGraph, Hugging Face, Pinecone, the OpenAI API, RAG and\nStreamlit.\n\n**In practice at work:** open-weight model deployment. The Pulsar chatbot runs on Qwen models\ninside an on-premise product rather than calling a hosted API, and everything that follows from\nthat constraint — what the model can do at that size, how to ground it well enough that the\nsmaller model is sufficient, how to validate its structured output — is what he is actively\nlearning by doing."
+ },
+ {
+  "id": "01-1-11",
+  "question": "What is he not good at?",
+  "answer": "The gaps that matter for an AI engineering role, stated plainly:\n\n**Scale.** He has not worked on a high-traffic system. The platform he works on is a commercial\nmedia QC product, not consumer infrastructure, and he has not had to reason about thousands of\nrequests per second, sharding, or the operational problems that only appear at volume.\n\n**Model training.** He has not trained a model from scratch, has not run a distributed training\njob, and has not done a significant fine-tune. He has used fine-tuning conceptually and works\nwith open-weight models at inference, but if a role needs someone to own a training pipeline, he\nis not there."
+ },
+ {
+  "id": "02-2-1",
+  "question": "Walk me through the generative-AI chatbot he built at Venera.",
+  "answer": "The problem: Pulsar is Venera's on-premise media quality control product. To use it, an operator\nconfigures a QC template — the set of checks a piece of media gets run through. Building one by\nhand means knowing the schema and picking through options, which is slow and is the kind of task\nwhere people copy an existing template and edit it until it roughly works."
+ },
+ {
+  "id": "02-2-2",
+  "question": "Why Qwen and open-weight models rather than an API like OpenAI or Claude?",
+  "answer": "It was not a preference, it was a requirement, and that distinction matters because it is what\nmakes the project interesting.\n\nPulsar is deployed on-premise at customer sites. For the customers who run it that way, the\nreason they run it that way is that their media and their workflows do not leave their\ninfrastructure. A feature that took an operator's description of their QC requirements and posted\nit to a third-party API would violate the premise of the product they bought. In some deployments\nthere is no outbound internet route at all."
+ },
+ {
+  "id": "02-2-3",
+  "question": "How does he stop it generating an invalid template?",
+  "answer": "By not trusting the model, structurally.\n\nThe generated template is validated against Pulsar's template schema before it can be used. If it\ndoes not validate, it does not get through. That is the guarantee, and it is enforced in code\nrather than requested in a prompt — which is the whole point. A prompt that says \"only produce\nvalid templates\" is a preference the model will usually honour. A validator is a property the\nsystem has."
+ },
+ {
+  "id": "02-2-4",
+  "question": "What does the evaluation set for the chatbot look like?",
+  "answer": "It has two halves, and he would say the second half is the one that matters.\n\n**The must-generate half:** descriptions paired with the template that should come out of them.\nThese are the cases where a correct answer exists and the system either produces it or does not.\nScoring them tells you whether a change to retrieval, the prompt or the model helped or hurt."
+ },
+ {
+  "id": "02-2-5",
+  "question": "What was the hardest part of building it?",
+  "answer": "The vocabulary gap between how operators describe what they want and how the schema expresses it.\n\nAn operator asks for something in the language of their job — what they are checking for, what\nthe media is for, what they are worried about. The template schema is a structured configuration\nof specific checks with specific parameters. Those two vocabularies barely overlap in surface\nterms, which is precisely why keyword retrieval was not going to work and the retrieval layer is\nembedding-based."
+ },
+ {
+  "id": "02-2-7",
+  "question": "How does the retrieval part of the chatbot work?",
+  "answer": "It is embedding-based retrieval over a vector store, run locally alongside the model.\n\nThe corpus being retrieved over is the existing body of templates plus the schema material that\ndefines what a valid template can contain. When an operator describes what they want, that\ndescription is embedded and used to find the most relevant existing templates and schema sections,\nwhich become the context the model generates from."
+ },
+ {
+  "id": "02-2-8",
+  "question": "What does this project prove that his side projects do not?",
+  "answer": "Three things, and they are the three that side projects structurally cannot demonstrate.\n\n**Working inside constraints he did not choose.** Every side project is built on the stack its\nauthor picked, targeting the requirements its author set. The Pulsar chatbot had to run\noffline inside an on-premise product, on models small enough for customer hardware, producing\noutput conforming to an existing schema he did not design. Most real engineering is working\ninside constraints like those, and a portfolio of self-directed projects gives no evidence of it."
+ },
+ {
+  "id": "02-2-9",
+  "question": "How does he know the chatbot is actually good?",
+  "answer": "Through the evaluation set, and he would be the first to say that is the only honest answer\navailable.\n\nThere is no way to look at a generative system and know whether it is good. Sampling a few\noutputs tells you almost nothing, because the variance between runs is wide enough that a handful\nof examples will confirm whatever you expected to see. The only thing that produces a real answer\nis deciding in advance what correct looks like across a spread of cases, and then scoring against\nit whenever something changes."
+ },
+ {
+  "id": "02-2-10",
+  "question": "Is this a real production feature or an internal prototype?",
+  "answer": "It is a feature in Pulsar, which is a commercial on-premise product that Venera's customers run.\nThat is what the resume claims and it is the claim worth testing directly with him rather than\nthrough an assistant.\n\nWhat supports it: the constraints are the constraints of a shipped product rather than a\nprototype. A prototype does not need to run entirely offline inside a customer deployment. A\nprototype does not need its generated output validated against a production schema before use. A\nprototype does not need an evaluation set covering the requests it must refuse. Those requirements\ncome from the thing being used by people who are not you."
+ },
+ {
+  "id": "02-2-11",
+  "question": "What does he own on it day to day?",
+  "answer": "Both halves of it — the implementation and the testing — which is an unusual combination and is\nthe thing most worth understanding about his role.\n\n**On the implementation side:** the retrieval layer over the template corpus and schema, prompt\ndesign and grounding, and the structured-output validation that sits between the model and the\nproduct. That is the pipeline from an operator's sentence to a template that is safe to use."
+ },
+ {
+  "id": "03-3-1",
+  "question": "Explain RAG as he would, based on what he has built.",
+  "answer": "A language model knows what was in its training data and nothing about your documents. RAG fixes\nthat by retrieving the relevant material at question time and putting it in the model's context,\nso the answer is generated from your content rather than from its memory.\n\nThe pipeline is four steps: chunk your corpus into retrievable pieces, index them, retrieve the\npieces relevant to a question, and generate an answer constrained to what was retrieved."
+ },
+ {
+  "id": "03-3-2",
+  "question": "Why does this site use BM25 instead of embeddings?",
+  "answer": "Because the corpus is thirty short chunks, and at that size embeddings would add an API round\ntrip, a cold start and a bill in exchange for a recall improvement he could not measure.\n\nThe reasoning he documented:"
+ },
+ {
+  "id": "03-3-3",
+  "question": "How does he decide on chunk size?",
+  "answer": "By measuring it, which sounds obvious and is uncommon — chunk size is usually picked once from a\nblog post and never revisited.\n\nHis position is that chunk size is a hyperparameter of the retrieval system and should be tuned\nagainst a retrieval eval set like any other. The trade-off is legible: chunks that are too small\nlose the context that makes a passage meaningful, so a retrieved fragment refers to a subject\nresolved in the previous chunk. Chunks that are too large dilute the signal — the passage matches\non something incidental, and the part that actually answers the question is buried among\nparagraphs that are not about it, where the lost-in-the-middle effect means the model may not use\nit."
+ },
+ {
+  "id": "03-3-4",
+  "question": "What does hybrid retrieval mean, and where has he used it?",
+  "answer": "Hybrid retrieval runs a lexical search and a semantic search over the same corpus and combines\ntheir rankings, because the two fail in opposite directions.\n\nLexical search — BM25 — is exact. It will find a specific product code, an error string, a person's\nsurname or an API symbol reliably, and it will completely miss a passage that means the same thing\nin different words. Semantic search over embeddings is the reverse: it bridges vocabulary\ngracefully and will confidently miss an exact identifier because the embedding model never learned\na distinctive vector for that token."
+ },
+ {
+  "id": "03-3-5",
+  "question": "How does he measure whether retrieval is working?",
+  "answer": "A labelled set of real questions, each paired with the passages that must appear in the top-k,\nscored as a suite that fails the build.\n\nOn this site that is `eval_retrieval.py`: 29 questions that must retrieve the right resume section\nand 7 that must retrieve nothing at all, currently 36 out of 36. It runs in a second, exits\nnon-zero on failure, and is meant to be run after any change to the profile data or the retrieval\ncode."
+ },
+ {
+  "id": "03-3-7",
+  "question": "How would he improve a RAG system that returns the right documents but wrong answers?",
+  "answer": "First he would check that the premise is true, because it usually is not. \"The right documents\nwere retrieved\" normally means someone looked at the top result and recognised it. The questions\nthat matter are whether the supporting passage survived into the assembled prompt, and where it\nlanded.\n\nAssuming it genuinely did, the causes in order of likelihood:\n\n**Position.** Retrieval accuracy inside a context window is U-shaped — material at the start and\nend is used far more reliably than material in the middle. A supporting passage sitting at\nposition nine of ten is frequently ignored. Retrieving fewer, better-ranked passages beats\nretrieving more, which is also cheaper."
+ },
+ {
+  "id": "03-3-8",
+  "question": "Does he have vector database experience?",
+  "answer": "Yes, on two systems, with different stores.\n\n**Pinecone**, on his document Q&A chatbot. That project indexes a 200-page knowledge base —\nchunking and embedding pipeline into Pinecone as the vector store, LangChain orchestrating\nretrieval over it, the OpenAI API for generation, served through Streamlit. It cut retrieval time\nby roughly 70%.\n\n**A locally-run vector store**, on the Pulsar chatbot at Venera. That one retrieves over the\nexisting template corpus and schema using embeddings, and everything runs inside the customer's\non-premise deployment — so both the embedding model and the store run locally rather than as\nhosted services. The specific store is Venera's implementation detail and not something this\nassistant will name."
+ },
+ {
+  "id": "03-3-9",
+  "question": "How does he handle a question the corpus does not cover?",
+  "answer": "Declines, deterministically, before the model is ever called — and this is one of the design\ndecisions he is most opinionated about.\n\nThe mechanism on this site: retrieval returns an empty list when nothing scores above threshold.\nThat empty result is the signal meaning \"the corpus genuinely has nothing on this\". The\napplication checks it and returns a refusal directly, with his email address, without spending a\nmodel call. No generation means no chance of the model padding an answer out of unrelated context."
+ },
+ {
+  "id": "03-3-10",
+  "question": "What would he do differently on his next RAG system?",
+  "answer": "The things on his own roadmap for this site, plus what the Pulsar work taught him.\n\n**Write the must-decline cases first.** He has now been caught twice by evaluating only what a\nsystem should get right. On the next one, the refusal set goes in before the success set, because\nit is the half that determines whether the thing is trustworthy and the half that is always\ndeprioritised."
+ },
+ {
+  "id": "03-3-11",
+  "question": "How large a corpus has he worked with?",
+  "answer": "Modest, and it is one of the clearer limits on his experience.\n\nThe sizes on record:\n\n- **A 200-page knowledge base** on the document Q&A chatbot, indexed into Pinecone with LangChain\n  orchestration. Roughly 70% faster retrieval was the measured result.\n- **The Pulsar template corpus** at Venera — the existing templates plus the schema material.\n  Production, but a product's template library rather than a web-scale corpus.\n- **Around 100 pages** of interview question-and-answer content backing this assistant, which is\n  the largest corpus he has built retrieval over and the reason it uses hybrid retrieval.\n- **Thirty chunks** for the resume index, which is small enough that lexical retrieval was\n  measurably the right choice."
+ },
+ {
+  "id": "04-4-1",
+  "question": "What is his actual approach to prompt engineering?",
+  "answer": "Treat the prompt as code: version it, test it, and never change it without measuring.\n\nThe concrete practice he follows:\n\n**Prompts live in one place, not at the call site.** On this site the system prompt is a single\nmodule-level constant with the retrieval layer feeding it. You cannot A/B test or roll back a\ntemplate that is spliced into a request handler, and once it is inline nobody knows which of the\nthree copies is the live one."
+ },
+ {
+  "id": "04-4-2",
+  "question": "Walk me through the system prompt on this site.",
+  "answer": "It is short by design and every clause is there because of something that went wrong.\n\nThe structure: it establishes who the assistant is and who it is talking to — recruiters, hiring\nmanagers and engineers evaluating him for AI/ML roles — then imposes rules.\n\n**Answer only from the retrieved context, which is the complete record.** This is the grounding\nclause. Without it the model fills gaps from its training data, and the gaps it fills most\nconfidently are exactly the plausible-sounding ones — an employer he never worked for, a\nframework he has never used."
+ },
+ {
+  "id": "04-4-3",
+  "question": "How does he prevent hallucination in a system he builds?",
+  "answer": "He would start by reframing it: hallucination is not a bug to be fixed, it is a property of\nmaximum-likelihood text generation. The model produces the most plausible continuation, and\nplausible overlaps with true but is not the same thing. A design that assumes it can be eliminated\nis a design that will fail.\n\nSo the question is containment, and his layers are:"
+ },
+ {
+  "id": "04-4-4",
+  "question": "What is the prompt-evaluation loop he built?",
+  "answer": "It is part of his Hugging Face NLP pipelines project, and it exists because he did not trust\neyeballing output.\n\nThe mechanics: a hand-labelled question set with known-correct answers, and a set of prompt\nvariants. Each variant is run across the whole set and scored, so comparing two prompts produces a\nnumber rather than an impression. Unsupported answers — where the output asserts something the\nsource material does not contain — are tracked as a metric rather than estimated."
+ },
+ {
+  "id": "04-4-5",
+  "question": "How does he get reliable structured output from a model?",
+  "answer": "In layers, and with the assumption that the model will eventually produce something that does not\nfit.\n\nHis ordering:\n\n**Constrain the generation where the stack allows it.** Asking for output in a defined structure,\nand constraining decoding to a schema where that is available, makes invalid output structurally\nimpossible rather than merely unlikely. This is the strongest layer and the one to use if you have\nit."
+ },
+ {
+  "id": "04-4-7",
+  "question": "How does he handle prompt injection?",
+  "answer": "By assuming it succeeds and limiting what that buys an attacker, because there is no reliable way\nto prevent it — instructions and data share one channel, which is architectural rather than a bug\nto patch.\n\nThe distinction he works from: *direct* injection is a user typing \"ignore previous instructions\",\nwhich is mostly a nuisance. *Indirect* injection is instructions hidden in content the system\nretrieves and reads while doing something legitimate, and that is the dangerous one for any RAG\nsystem — including both of his."
+ },
+ {
+  "id": "04-4-8",
+  "question": "How does he decide between changing the prompt and changing the retrieval?",
+  "answer": "By looking at what was actually retrieved before touching anything — and he would say the instinct\nto edit the prompt first is the single most common mistake in RAG work, including his own.\n\nThe test is direct. Look at the passages that ended up in the assembled prompt. If the material\nneeded to answer the question is not there, no prompt change can help, and any improvement you\nthink you see from rewording is noise. If it *is* there and the answer is still wrong, then it is a\nprompt, position or model problem."
+ },
+ {
+  "id": "04-4-9",
+  "question": "What makes a prompt maintainable a year later?",
+  "answer": "Four things, and he has watched the absence of each cause problems.\n\n**It lives in one place and is versioned.** Not inline at the call site, not duplicated across three\nhandlers. On this site it is a single constant in the module that assembles the request. You cannot\nroll back or compare something you cannot locate.\n\n**Every clause has a recorded reason.** The most dangerous prompt is one where nobody knows why a\nsentence is there, because then nobody will remove it and it accumulates. His system prompt's\nclauses each map to a specific failure — the \"do not substitute the career summary\" instruction\nexists because it did exactly that, and that is documented in the build log. A clause with a\nrecorded cause can be deleted when the cause is gone."
+ },
+ {
+  "id": "04-4-10",
+  "question": "Has he done anything with few-shot prompting?",
+  "answer": "Yes, and the interesting version is on the Pulsar chatbot, where the retrieved templates function\nas the examples.\n\nThat is worth unpacking because it is the thing that makes RAG and few-shot prompting the same\nmechanism in practice. When an operator describes a template they want, the system retrieves real\nexisting templates relevant to that description and puts them in the context. The model is\ncompleting a pattern demonstrated by genuine examples from the corpus, not inventing structure from\nits priors. That is dynamic few-shot — examples selected per request by similarity, rather than a\nfixed set — and it is materially better than a static set because the examples are always relevant\nto the specific request."
+ },
+ {
+  "id": "04-4-11",
+  "question": "Does he version his prompts, and how?",
+  "answer": "Yes, and the reasons are practical rather than bureaucratic: you cannot compare, roll back or explain a prompt that exists\nonly as a string edited in place.\n\nOn the resume assistant the system prompt is a single constant in one module, which is enough for a system with one prompt.\nOver the interview corpus behind this assistant there is a proper registry, because there are several prompt variants being\ncompared. Each version records:"
+ },
+ {
+  "id": "05-5-1",
+  "question": "Has he fine-tuned a model?",
+  "answer": "Not at production scale, and this is a place where the honest answer is narrower than the resume\nkeyword suggests.\n\nWhat he has done: fine-tuning experiments with Hugging Face Transformers as part of his NLP\npipelines work, and the dataset-and-evaluation scaffolding around fine-tuning — building an\ninstruction dataset from a corpus, splitting it, checking for contamination against the eval set,\nand scoring a tuned model against a base one. He has worked with LoRA as the approach."
+ },
+ {
+  "id": "05-5-2",
+  "question": "When would he fine-tune instead of using RAG?",
+  "answer": "They solve different problems, and he would push back on the question being framed as a choice\nbetween them.\n\nThe decomposition he uses:\n\n- **Prompting** changes instructions — what the task is and how to respond.\n- **RAG** changes knowledge — what facts are available at answer time.\n- **Fine-tuning** changes behaviour — format, tone, task-specific skill, conventions that are\n  tedious to specify."
+ },
+ {
+  "id": "05-5-3",
+  "question": "Explain LoRA and why it matters.",
+  "answer": "Full fine-tuning updates every weight in the model, which means holding the weights, their\ngradients and the optimiser state in memory simultaneously — for a 7B model in fp16 that is\nroughly 14 GB of weights and several times that again in training state. It puts fine-tuning out\nof reach without serious hardware.\n\nLoRA — low-rank adaptation — freezes the base model entirely and inserts small trainable matrices\nalongside the layers it adapts. The insight is that the *update* a fine-tune applies is\nempirically low-rank: it lies in a much smaller subspace than the full parameter space. So rather\nthan learning a full-size weight delta, you learn two thin matrices whose product approximates it.\nWith a rank of 8 or 16 you train a fraction of a percent of the parameters."
+ },
+ {
+  "id": "05-5-4",
+  "question": "How would he build a fine-tuning dataset?",
+  "answer": "Carefully, because the dataset determines the outcome far more than the hyperparameters do, and\nbecause the failure modes are silent.\n\nHis process:\n\n**Define the target behaviour precisely first.** Fine-tuning teaches behaviour, so you need to be\nable to state what the model should do differently. \"Better\" is not a target; \"produces output in\nthis format, with these conventions, and refuses these categories\" is."
+ },
+ {
+  "id": "05-5-5",
+  "question": "How would he evaluate a fine-tuned model?",
+  "answer": "Against the base model, on a held-out set the tuned model never saw, measuring both the thing he\nwas trying to improve and the things he might have broken.\n\nThe structure:\n\n**A task set for the target behaviour.** The cases the fine-tune was supposed to fix, scored\nidentically for base and tuned so the comparison is apples to apples. Improvement here is the\nreason the fine-tune exists."
+ },
+ {
+  "id": "05-5-7",
+  "question": "When is fine-tuning the wrong answer?",
+  "answer": "More often than it is proposed, in his experience. The cases where he would argue against it:\n\n**To add knowledge that changes.** Weights are a bad database. Updating a fact means retraining,\nthe model learns the fact without learning to cite it, and facts seen rarely in training are learned\nunreliably. Anything that changes on a weekly cadence belongs in a retrieval corpus. The most common\nversion of this request — \"fine-tune it on our documentation\" — is the textbook case for RAG."
+ },
+ {
+  "id": "05-5-8",
+  "question": "How would he reduce the cost of an LLM feature?",
+  "answer": "In the order of effort-to-saving, which is roughly the opposite of the order people try.\n\n**Avoid the call entirely where you can.** On this site, questions the resume does not cover are\ndeclined deterministically before any model call — no tokens spent, and it is also the more correct\nbehaviour. Caching repeated queries is the other free win.\n\n**Retrieve less, better.** Three well-ranked passages beat ten mediocre ones on cost *and* accuracy,\nbecause of the lost-in-the-middle effect. A reranker that lets you cut top-k pays for itself twice."
+ },
+ {
+  "id": "05-5-9",
+  "question": "What is his experience with Hugging Face?",
+  "answer": "Hugging Face Transformers is on his resume for the NLP pipelines project, and it is where his\nmodel-level work sits.\n\nThat project built transformer-based text pipelines for classification and summarisation —\ntokenisation, inference, and fine-tuning experiments. Attached to it is the prompt-evaluation loop\nthat scores prompt variants against a hand-labelled question set, with unsupported answers tracked\nas a metric rather than estimated. He describes the evaluation part as the point of the project more\nthan the pipelines themselves."
+ },
+ {
+  "id": "05-5-10",
+  "question": "Could he take a model from an experiment into production?",
+  "answer": "He has done it once, which is the honest framing — the Pulsar chatbot went from nothing to a feature\nin a commercial product, and he was the primary engineer on it.\n\nWhat that involved beyond making a model produce good output: working inside a deployment model he\ndid not control, designing for an environment with no outbound network access, building a validation\nlayer that makes bad output structurally unable to reach the product, writing the evaluation set\nthat says whether it works, and integrating with an existing release process he already knew from six\nmonths of QA work on the same platform."
+ },
+ {
+  "id": "06-6-1",
+  "question": "What has he built with LangChain?",
+  "answer": "The document Q&A chatbot, which is the clearest finished example.\n\nThat project answers questions over a 200-page knowledge base. LangChain orchestrates the pipeline:\nthe chunking and embedding stage that builds the index, retrieval against Pinecone as the vector\nstore, and the generation call to the OpenAI API with retrieved passages as context. It is served\nthrough Streamlit. The measured result was roughly a 70% reduction in retrieval time over that\ncorpus."
+ },
+ {
+  "id": "06-6-2",
+  "question": "What does he think of LangChain as a framework?",
+  "answer": "Useful where it composes, a liability where it hides things, and the judgement is about which mode\nyou are in.\n\nWhat it genuinely gives you: a common interface across models and vector stores so swapping a\ncomponent is a line rather than a rewrite; composition that makes a pipeline readable as a pipeline\nrather than as nested function calls; streaming, batching and async handled once rather than per\nproject; and a large ecosystem of integrations so you are not writing yet another PDF loader."
+ },
+ {
+  "id": "06-6-3",
+  "question": "What is LangGraph and how is it different from LangChain?",
+  "answer": "LangChain composes a pipeline; LangGraph composes a state machine. The difference is loops and\nbranching.\n\nA LangChain chain is a directed acyclic pipeline — input goes in, passes through stages, output\ncomes out. That covers most RAG, and it is the right shape when the steps are known in advance.\n\nLangGraph models the workflow as a graph with explicit nodes, explicit state, and **conditional\nedges** — so the path through it is decided at runtime by the state, and it can cycle. That is what\nyou need when a step's outcome determines what happens next: retrieve, judge whether the retrieved\nmaterial is good enough, and if not rewrite the query and retrieve again before generating."
+ },
+ {
+  "id": "06-6-4",
+  "question": "Has he actually used LangGraph, or is it aspirational?",
+  "answer": "Both, and the resume says so — it lists LangGraph under \"exploring\" for the self-directed work\nrather than claiming production depth.\n\nThe honest state of it:\n\n**What is real and running:** the assistant answering this question routes through a LangGraph\nagent over the interview corpus. It is a genuine stateful graph — route the question, retrieve,\ngrade whether there is enough evidence to answer, re-read a follow-up with the previous question if\nneeded, generate, verify the answer's numbers and citations against its sources, and either finish,\nregenerate once, or quote the source instead. It runs on real LangGraph where installed, with a\nstandard-library stand-in of the same graph when not. The node trace is returned with every answer,\nso you can see which path your question took."
+ },
+ {
+  "id": "06-6-5",
+  "question": "Describe the agent graph running on this site.",
+  "answer": "It is a stateful graph over the interview corpus, and the design is deliberately conservative —\nevery loop is bounded, and every path ends in an answer, a refusal, or a quoted source.\n\nThe state carries the question, the conversation so far, the query being searched, the retrieved\nentries, rewrite and regeneration counters, the draft answer with its citations, and a trace of every\nnode that ran with its timing."
+ },
+ {
+  "id": "06-6-7",
+  "question": "How does he handle state in a multi-turn conversation?",
+  "answer": "Explicitly, with bounds, and with an awareness that conversation history is the easiest place to\nleak data between users.\n\nOn this site the history is client-supplied and then sanitised server-side before use: trimmed to\nthe last eight turns, each message capped in length, roles validated to be user or assistant, and\nleading assistant turns dropped so the conversation always opens with a user message — which every\nprovider requires. Nothing is trusted because it arrived in the request body."
+ },
+ {
+  "id": "06-6-8",
+  "question": "What is the value of the node trace the agent returns?",
+  "answer": "It turns a non-deterministic system into one you can actually debug, which is the single biggest\npractical problem with this class of software.\n\nWhen a RAG or agent system gives a bad answer, the question is which stage failed — and without a\ntrace, every hypothesis is equally plausible and people default to blaming the prompt. With one you\ncan see whether routing sent it to a refusal, whether retrieval came back empty, whether grading\nrejected the first attempt and the rewrite helped, and whether verification passed. That collapses\nthe search space immediately."
+ },
+ {
+  "id": "06-6-9",
+  "question": "How would he choose between LangChain, LlamaIndex and writing it himself?",
+  "answer": "By how much of the pipeline is going to change, which is the question that actually decides it.\n\n**Write it yourself** when the pipeline is fixed and small. A RAG system is retrieve, assemble, call,\nparse — that is a few hundred lines you fully understand, with no dependency tree, no version churn\nand a prompt you can see. This site's resume assistant is exactly that: BM25 retrieval, provider\nadapters and prompt assembly in three modules, no framework, and it deploys on a free tier because\nit weighs almost nothing. He would defend that choice for that system without hesitation."
+ },
+ {
+  "id": "06-6-10",
+  "question": "How does the site run LangGraph on a free hosting tier?",
+  "answer": "By checking the actual numbers rather than assuming, and then building a fallback anyway.\n\nThe assumption people make is that LangChain and LangGraph are too heavy for a serverless free tier.\nHe measured the real dependency closure — langgraph plus langchain-core and everything they pull in\n— at about 38 MB unzipped, against a 250 MB serverless limit. So the assumption was wrong, and the\nlive site runs genuine LangChain and LangGraph rather than a simulation of them."
+ },
+ {
+  "id": "07-7-1",
+  "question": "Why does he build an evaluation set for everything?",
+  "answer": "Because with a generative system you genuinely cannot tell whether a change helped by looking at\nthe output, and he has been wrong about this in a way he can point to.\n\nThe mechanics of the problem: output variance between runs is wide enough that sampling three\nresponses confirms whatever you already believed. Changes to retrieval and prompts have non-local\neffects, so improving one class of question routinely degrades another, and nothing tells you unless\nboth are in the set. And the failures that matter are quiet — a confident wrong answer looks exactly\nlike a confident right one."
+ },
+ {
+  "id": "07-7-2",
+  "question": "What is the must-decline half of an eval set, and why does he insist on it?",
+  "answer": "It is the set of questions the system is required to *not* answer, and he treats it as the more\nimportant half.\n\nOn this site it is 7 of the 36 cases: questions his resume genuinely does not cover, asserted to\nretrieve nothing so the system declines. On the Pulsar chatbot at Venera it is the requests the\nsystem must refuse rather than generate a template for."
+ },
+ {
+  "id": "07-7-3",
+  "question": "Tell me about a bug he shipped.",
+  "answer": "He publishes twelve of them on this site, deliberately, under a build log that says how a system\nfails matters more than how it looks when it works. A few that show different things:\n\n**The one where the health check lied (bug 08).** With a valid API key configured, the site reported\nthe engine live while every answer was actually coming from the local extractive fallback. Two\nfaults stacked: the HTTP layer sent Python's default user-agent, which the CDN in front of the\nprovider rejects outright, and the health check only asked whether a key was *present*, never\nwhether the provider would answer. The graceful fallback was hiding a total failure. He fixed both —\na real user-agent, and splitting health into a cheap \"configured\" check and an opt-in probe that\nmakes one live call. He only found it because answers report which engine produced them."
+ },
+ {
+  "id": "07-7-4",
+  "question": "How does he think about guardrails?",
+  "answer": "As properties enforced in code, not behaviours requested in a prompt. The distinction is the whole\nof his position.\n\nA prompt saying \"only produce valid output\" is a preference the model will usually honour. A\nvalidator is a guarantee. Anything that must be true has to be checked outside the model.\n\nThe guardrails on this site, which he documents publicly:"
+ },
+ {
+  "id": "07-7-5",
+  "question": "What metrics does he use to evaluate a RAG system?",
+  "answer": "He separates the two halves, because conflating them is why teams cannot tell what is broken.\n\n**For retrieval**, measured independently of generation: recall@k as the primary — did the passage\nthat supports the answer make the cut at all — plus rank position, because the lost-in-the-middle\neffect means a hit at position nine is often a practical miss. Mean reciprocal rank and nDCG where\nthe ordering matters more finely. And the refusal rate on out-of-scope queries, which is the\nmust-decline half."
+ },
+ {
+  "id": "07-7-7",
+  "question": "How does he evaluate something with no single correct answer?",
+  "answer": "By converting \"is this good\" into a set of properties that can each be checked, rather than trying\nto score quality directly.\n\nOn an open-ended answer, the properties he would actually assert:\n\n- **Groundedness.** Every factual claim traceable to a retrieved passage. Checkable, and the most\n  important one for his systems.\n- **Refusal correctness.** Did it decline when it had no basis. Binary.\n- **Format compliance.** Length bounds, structure, required elements. Programmatic.\n- **Absence of specific failures.** Does it invent an employer, a date or a number. A targeted check\n  against a known list catches the category that matters most here."
+ },
+ {
+  "id": "07-7-8",
+  "question": "What does his QA background actually contribute to AI work?",
+  "answer": "Three specific habits, and they are the ones that decide whether an LLM feature is shippable.\n\n**Deciding what correct looks like before building.** A test strategy is a statement of expected\nbehaviour written in advance. Applied to a generative system that is an eval set, and it is the same\nartifact doing the same job. The reason he writes one for everything is not diligence, it is that he\nspent six months in a role where the deliverable *was* that artifact."
+ },
+ {
+  "id": "07-7-9",
+  "question": "How does he decide what to measure versus what to assume?",
+  "answer": "He measures the things a decision depends on and the things that will drift, and he assumes the rest —\nbecause measuring everything is a way of measuring nothing well.\n\nThe test he applies: would a different value change what I do? If yes, measure it. Retrieval recall\nchanges whether he works on chunking or on prompting, so it is measured. The exact latency of a\nfunction that runs once at startup changes nothing, so it is not."
+ },
+ {
+  "id": "07-7-10",
+  "question": "What would he do if an eval set and a stakeholder disagreed?",
+  "answer": "Take the disagreement as information about the eval set, not as a problem to win.\n\nIf a stakeholder says the system feels worse and the suite says it improved, the most likely\nexplanation is that the eval is measuring the wrong thing or is missing the cases they care about.\nThat is a genuinely common outcome — an eval set built by the engineer captures the failures the\nengineer anticipated, and the person using it daily encounters a different distribution."
+ },
+ {
+  "id": "07-7-11",
+  "question": "How would he evaluate an agent, rather than a single model call?",
+  "answer": "By evaluating the path as well as the destination, because an agent can reach a correct answer by a bad route and a wrong\nanswer by a mostly good one — and only the trace tells you which.\n\nThe layers he would score, using the graph behind this assistant as the example:\n\n**End to end.** The same thing you would measure for any RAG system: is the final answer grounded, correct where a correct\nanswer exists, and a refusal where it should be. This is the number a user experiences."
+ },
+ {
+  "id": "08-8-1",
+  "question": "Walk me through the 150 automated test scripts.",
+  "answer": "Those were built during his six-month internship at Venera Technologies, on their media quality\ncontrol platform, in Python with Selenium WebDriver and the Page Object Model.\n\nThe measured outcomes: manual regression time down 65%, 78% coverage of P1 and P2 cases, and three\ncritical regressions caught before release as a direct result.\n\nThe Page Object Model detail matters more than it sounds. It means the locators and interactions for\neach screen live in one class, and tests call methods on that class rather than addressing the DOM\ndirectly. The reason is maintenance: without it, a UI change breaks every test that touched that\nscreen and you spend your time repairing the suite instead of extending it. A suite of 150 scripts\nthat nobody maintains stops being run within a couple of months, so the structure is what makes the\nnumber mean anything."
+ },
+ {
+  "id": "08-8-2",
+  "question": "Tell me about the severity-1 incident.",
+  "answer": "During his internship he intercepted a severity-1 503 failure and coordinated a same-day hotfix,\nwhich avoided roughly four hours of user-facing downtime.\n\nWhat makes it the item he is proudest of is that the counterfactual is concrete. Most QA work has a\ndiffuse benefit — defects found, coverage raised — and it is hard to say what would have happened\notherwise. Here the alternative is specific: without the interception, that failure reaches\nproduction and customers cannot use the service for about four hours."
+ },
+ {
+  "id": "08-8-3",
+  "question": "What did validating 120 API endpoints actually involve?",
+  "answer": "Postman-based validation across Venera's AWS microservices — 75 endpoints on Quasar, the cloud QC\nproduct, and 45 on Pulsar, the on-premise one. The measured outcome was a 98.3% pass rate with two\nproduction-blocking defects found and resolved before deployment.\n\nWhat that work involves beyond sending requests: checking status codes and response schemas,\nvalidating behaviour at boundaries rather than only on the happy path, checking authentication and\nauthorisation actually enforce what they claim, and verifying error responses are correct rather than\nmerely present. Boundary value analysis is on his skills list and that is where it applies — the\ndefects live at the edges of ranges, not in the middle."
+ },
+ {
+  "id": "08-8-4",
+  "question": "Is he a QA engineer or a software engineer?",
+  "answer": "His title is Associate Software Engineer, and his primary work is building a generative-AI feature.\nSo: software engineer, with a quality engineering background he has not discarded.\n\nThe full trajectory: six months as a graduate trainee and QA engineer on Venera's media QC platform,\nconverted to full-time in August, and since then the primary engineer on the Pulsar template-generation\nchatbot — owning the implementation, not only the testing."
+ },
+ {
+  "id": "08-8-5",
+  "question": "How does testing an LLM feature differ from testing normal software?",
+  "answer": "The deterministic parts are tested normally. The model call is not testable that way at all, and\nconflating the two is where most teams go wrong.\n\n**Everything except the model call is ordinary code.** Chunking, retrieval ranking, prompt assembly,\nresponse parsing, citation extraction, schema validation. These are pure functions over data and\nshould have real unit tests. If your architecture does not let you test them without a network call,\nthat is the finding — the fix is an adapter boundary at the provider, which this site has for exactly\nthat reason."
+ },
+ {
+  "id": "08-8-7",
+  "question": "How did he manage 79 defects?",
+  "answer": "In Zoho, across his internship — 79 defects managed, 61 resolved, 10 of them critical, with test\nassets maintained in Bitbucket under structured pull request review.\n\nWhat \"managed\" covers beyond logging them: writing a reproduction that someone else can follow,\nassigning severity honestly, tracking them to resolution, and verifying the fix rather than accepting\nthat it was marked done. The last one is the part that makes the number meaningful — a defect marked\nresolved and never verified is a defect that comes back."
+ },
+ {
+  "id": "08-8-8",
+  "question": "What is the most useful thing QA taught him?",
+  "answer": "That a system is not done when it produces output — it is done when you can show it produces the\nright output. That sentence is the one he uses, and everything he has built since is an application\nof it.\n\nThe experience behind it is watching a severity-1 failure get caught an hour before release because\nsomeone bothered to check. Nothing had flagged it. The build was green. It was found because checking\nwas somebody's job."
+ },
+ {
+  "id": "08-8-9",
+  "question": "Does he write tests for his own code?",
+  "answer": "Yes, and this site is the auditable example, which is a fair thing to check rather than take on\ntrust.\n\nWhat exists here: `eval_retrieval.py`, a 36-case retrieval suite that exits non-zero on failure and\nis documented as the thing to run after any change to the profile data or the retrieval code. It\ncovers 29 questions that must retrieve the right resume section and 7 that must retrieve nothing at\nall. It is fast enough — about a second — that there is no friction excuse for skipping it."
+ },
+ {
+  "id": "08-8-10",
+  "question": "How would he improve quality on a team that has no tests?",
+  "answer": "By starting where the pain is, not by proposing a testing strategy.\n\nA team without tests almost always knows it, and has reasons — usually that the last attempt produced\na slow, brittle suite that everybody ignored. Arriving with a coverage target confirms their prior\nthat testing is overhead. So:\n\n**Find out what actually breaks.** Look at the last few incidents or the recurring defects. There is\nusually a small number of failure modes responsible for most of the pain, and they are the cheapest\nthing to protect."
+ },
+ {
+  "id": "09-9-1",
+  "question": "What is his AWS experience?",
+  "answer": "Hands-on, from working on Venera's cloud-native platform, and it is worth being precise about the\nshape of it.\n\nQuasar is Venera's cloud media quality control product, built as AWS cloud-native microservices. He\nhas worked on it since February 2026 — first validating 75 REST endpoints across those microservices\nduring his internship, then continuing across the full SDLC including AWS cloud-native release\nreadiness as a defined part of his current role."
+ },
+ {
+  "id": "09-9-2",
+  "question": "What is the difference between working on a cloud product and an on-premise one?",
+  "answer": "He has worked on both at Venera — Quasar in the cloud on AWS, Pulsar on-premise at customer sites —\nand the differences that matter are about control and assumptions.\n\n**You control the cloud environment; you do not control an on-premise one.** In the cloud you know\nthe machine, the versions, the network, and you can change them. On-premise, the software runs on\nhardware you have never seen, on a version the customer chose to install, possibly with no route to\nthe internet. Everything has to work under assumptions rather than knowledge."
+ },
+ {
+  "id": "09-9-3",
+  "question": "What is his experience with CI/CD?",
+  "answer": "Working within CI/CD pipelines rather than owning them, which is the accurate framing for his level.\n\nOn his skills list: Jenkins, CI/CD, Git and GitHub, Bitbucket, Gradle, Maven. In practice that means\nhis automated test suites ran as part of the pipeline, he worked with builds and release processes as\npart of release readiness, and he maintained test assets in Bitbucket under structured pull request\nreview."
+ },
+ {
+  "id": "09-9-4",
+  "question": "How does he work with version control and code review?",
+  "answer": "Bitbucket at Venera with structured pull request reviews, and Git and GitHub for his own work. This\nsite's source is public.\n\nWhat he would say about review specifically, because it is where the useful answer is: the most\nvaluable thing a review catches is not a bug, it is a decision that looks wrong out of context. The\ncode on this site carries comments explaining *why* rather than what, specifically at the points where\nthe correct-looking thing is wrong. One example: a template variable is accessed with bracket notation\nrather than attribute notation, with a comment saying the attribute form resolves a built-in method\ninstead of the data — because that bug shipped once and the attribute form looks correct enough that\nanyone tidying the file would reintroduce it. That comment exists for a future reviewer."
+ },
+ {
+  "id": "09-9-5",
+  "question": "How does he handle a production incident?",
+  "answer": "His direct experience is the severity-1 503 he intercepted before release, where a same-day hotfix was\ncoordinated and roughly four hours of user-facing downtime avoided. So the honest framing is that he\nhas caught and coordinated a serious issue, rather than that he has been on call for a major outage.\n\nThe approach he would describe:\n\n**Contain before diagnosing.** Reduce impact first — roll back, disable the feature, fail over — and\nunderstand it afterwards. The instinct to find the root cause while users are affected gets the order\nwrong."
+ },
+ {
+  "id": "09-9-7",
+  "question": "How does he think about monitoring an AI feature in production?",
+  "answer": "He would separate what he has done from what he knows should be done, because this is an area where\nhis production exposure is short.\n\n**What he has built:** the assistant on this site reports which provider actually produced each\nanswer, and the health endpoint separates a cheap \"is a key configured\" check from an opt-in probe\nthat makes one real call and reports the true error. That split exists because of a specific failure —\na valid key was configured, health reported green, and every answer was silently coming from the local\nfallback because a CDN was rejecting the request. A health check that confirms configuration is not a\nhealth check."
+ },
+ {
+  "id": "09-9-8",
+  "question": "Has he worked in an Agile process?",
+  "answer": "Yes — sprint-based work at Venera across the full SDLC, working with dev and product teams.\n\nThe concrete artifacts of it in his record: defining acceptance criteria with dev and product before\nwork starts, reviewing test strategies, and defect escape rate tracked and reduced sprint over sprint.\nThat last one is a sprint-level metric and the fact that it moved is evidence of a feedback loop\nactually operating rather than ceremony being performed."
+ },
+ {
+  "id": "09-9-9",
+  "question": "What would he need from us to be productive quickly?",
+  "answer": "Four things, and the first two are the ones that would actually change his ramp time.\n\n**Access to what already exists.** For any AI feature: the current prompts, whatever evaluation exists,\nand a sample of real traffic — inputs, outputs and what people actually ask. A day with real query\nlogs teaches more about a system than a week of reading code, because it shows what the system is\nbeing asked to do rather than what it was designed to do."
+ },
+ {
+  "id": "09-9-10",
+  "question": "Can he work independently, or does he need direction?",
+  "answer": "The evidence points to independent with judgement about when to check, which is the combination you\nwant at his level.\n\nThe case for independence: he was handed Venera's first generative-AI feature — something with no\ninternal precedent — and built it from scratch, owning both implementation and testing. That is not\nticket work. Everything outside his job is self-directed too: the document Q&A chatbot, the NLP\npipelines with a prompt-evaluation loop, and this site, which is roughly three thousand lines carrying\na retrieval index, nine provider integrations, an evaluation suite and a published build log. Nobody\nasked for any of it."
+ },
+ {
+  "id": "09-9-11",
+  "question": "What happens when an AI vendor retires the model your product uses?",
+  "answer": "It happened to this site, to both of its providers at once, which makes it a real answer rather than a hypothetical.\n\n**What happened.** The default Groq model and the default Gemini model the site was configured for had both been retired\nby their vendors. Every call returned a 404 naming the model as no longer available. Because the provider chain treats any\nfailure as \"try the next one\" and ends in an extractive fallback, the site kept answering throughout — from its local\nindex, visibly labelled as such — rather than breaking."
+ },
+ {
+  "id": "10-10-1",
+  "question": "Tell me about the document Q&A chatbot.",
+  "answer": "A retrieval-augmented question-answering system over a 200-page knowledge base, with grounded,\ncitation-friendly answers. The measured result was roughly a 70% reduction in retrieval time across\nthat corpus.\n\nThe stack: a chunking and embedding pipeline building an index in Pinecone as the vector store,\nLangChain orchestrating retrieval and generation, the OpenAI API for the model, and Streamlit as the\ninterface.\n\nThe part he treats as the actual work is the grounding pass rather than the plumbing. Answers are\nconstrained to the retrieved passages, and unsupported responses — output asserting something the\nretrieved material does not contain — are tracked as a metric rather than estimated. That distinction\nmatters: \"we told it to stay grounded\" is a prompt, and \"we measured how often it did not\" is\nengineering. It is the same instinct that produced the eval sets on everything else he has built."
+ },
+ {
+  "id": "10-10-2",
+  "question": "What are the NLP pipelines he built with Hugging Face?",
+  "answer": "Transformer-based text pipelines for classification and summarisation, built on Hugging Face\nTransformers — tokenisation, inference, and fine-tuning experiments.\n\nThe component he would actually talk about is the prompt-evaluation loop attached to it. Each prompt\nvariant is scored against a hand-labelled question set, so comparing two prompts produces a number\nrather than an impression, and unsupported answers are tracked as a metric. He built it because\niterating on a prompt by running two or three examples and deciding it looks better is close to\nworthless — generative output varies enough between runs that a small sample confirms whatever you\nalready expected."
+ },
+ {
+  "id": "10-10-3",
+  "question": "Tell me about the Selenium Grid automation project.",
+  "answer": "A parallel cross-browser regression suite running across three browsers and two operating systems,\nwhich cut manual cross-browser effort by about 80% and halved pre-release validation time for the\nteam.\n\nSelenium Grid is the piece that makes this more than a test suite: it distributes test execution\nacross multiple machines and browser configurations so the suite runs in parallel rather than\nsequentially. Cross-browser testing is the case where that matters most, because the same suite has\nto run N times against N configurations, and run serially that is N times the wall-clock cost."
+ },
+ {
+  "id": "10-10-4",
+  "question": "What are the older projects — the chat app and the Java CRUD system?",
+  "answer": "Both pre-date his move toward AI work and he keeps them on the resume as evidence of range rather\nthan as current skills.\n\n**The real-time chat app** is an Android application in Kotlin with Firebase as the realtime backend,\nwith secure authentication and sub-second message sync, verified stable under concurrent multi-user\nload. It connects to his NullClass internship, which was Android development — building and optimising\nmobile applications, UI performance tuning, Firebase integration and mobile SDLC delivery."
+ },
+ {
+  "id": "10-10-5",
+  "question": "Which project is he proudest of, and why?",
+  "answer": "The Pulsar template-generation chatbot at Venera, because it shipped into a product with constraints\nhe did not choose and consequences he did not control.\n\nHis reasoning, which is worth stating because it says something about how he evaluates work: a side\nproject is built on the stack its author picked, targeting requirements its author set, and judged by\nits author. The Pulsar feature had to run offline inside an on-premise deployment, on models small\nenough for customer hardware, producing output conforming to a schema he did not design, for operators\nwhose failure case is running quality control with checks they did not ask for. Working inside that is\nmost of the engineering."
+ },
+ {
+  "id": "10-10-7",
+  "question": "What would he build next?",
+  "answer": "The published roadmap for this site, plus what the Pulsar work exposed as gaps.\n\n**On this site**, listed publicly as unfinished rather than claimed as done:\n\n- **Hybrid retrieval** — BM25 plus embeddings — once the corpus grew past a few hundred chunks. That\n  threshold has now been crossed by the interview corpus, and the retrieval over it is hybrid, so this\n  one is done and the rest are not.\n- **Wire the eval into CI** so a bad retrieval change cannot merge. It already exits non-zero for\n  exactly this purpose; it is not automated yet, and a check that depends on someone remembering will\n  eventually not run.\n- **Stream tokens to the client** rather than waiting for the full response. A user-experience gap\n  rather than a correctness one."
+ },
+ {
+  "id": "10-10-8",
+  "question": "Do his projects have real users?",
+  "answer": "One does. The rest do not, and that distinction is the right way to weigh them.\n\n**The Pulsar template-generation chatbot** is a feature in a commercial product that Venera's customers\nrun. Operators use it. That is the only one of his systems with users who did not choose to look at\nhis portfolio.\n\n**This site** has visitors — recruiters and engineers, which is the intended audience — and at least\none reported bug came from a real user rather than from testing: long answers opened scrolled to their\nlast line, so you landed on the closing sentence and had to scroll back up. That is logged as bug 09\nand credited as user-reported. So there is some real usage signal, but it is a portfolio, not a\nservice."
+ },
+ {
+  "id": "10-10-9",
+  "question": "What is the most technically interesting thing he has built?",
+  "answer": "The retrieval layer on this site, which sounds like the least impressive option and is the one with\nthe most actual engineering in it.\n\nThe naive version is BM25 over resume chunks. The interesting problem is that it does not work, for a\nreason that is specific and generalises: recruiters ask \"can he do X\" while a resume says \"built X\".\nThe vocabulary of hiring and the vocabulary of a CV barely overlap, so lexical matching fails on\nexactly the questions that matter most."
+ },
+ {
+  "id": "10-10-10",
+  "question": "How do his projects connect to each other?",
+  "answer": "Three retrieval systems with three different architectures, and a measurement habit that carries\nthrough all of them.\n\n**The progression.** The document Q&A chatbot is the conventional stack — embeddings, Pinecone,\nLangChain, a hosted model. This site's resume assistant was the opposite: no embeddings, no vector\ndatabase, no framework, no required API key, because its corpus was thirty chunks and the\nconventional stack would have added cost and failure modes for unmeasurable gain. When the site's\ncorpus grew to 163 questions and answers, keyword search found the right answer for under half of reworded questions and\nembeddings for about nine in ten, so the live assistant now leads with embeddings -- same principle, different\ncorpus, different answer. The Pulsar chatbot at work is a third\npoint — embeddings and a vector store, but everything running locally inside an on-premise deployment\nbecause no outbound call is permitted."
+ },
+ {
+  "id": "11-11-1",
+  "question": "How does the assistant on this site work, end to end?",
+  "answer": "A LangGraph agent over about a hundred pages of questions and answers about his record. Every step\nhas a fallback, so the chat answers even when parts of it are down.\n\n**1. Route.** An empty or oversized question is turned away before anything runs.\n\n**2. Retrieve.** The question is embedded and compared with every answer in the corpus, and a BM25\nkeyword pass votes alongside at a quarter weight, fused by rank. Measured on questions reworded the\nway visitors actually type, this finds the right answer in the top three about nine times in ten, against roughly half\nfor keyword search alone. The embedding call has a two-second deadline; if it misses, BM25 and a\nlocal latent-semantic index answer in milliseconds instead."
+ },
+ {
+  "id": "11-11-2",
+  "question": "Why nine model providers? Isn't that over-engineering for a portfolio?",
+  "answer": "It would be, if it cost nine implementations. It costs roughly two.\n\nSeven of the nine — Groq, Cerebras, OpenRouter, Mistral, Together, Ollama and OpenAI — speak the same\nOpenAI-style chat completions format, so they share a single adapter and differ only in base URL,\ndefault model and environment variable. Gemini and Anthropic have different wire formats and get\ntheir own. Adding a provider is a class with four attributes."
+ },
+ {
+  "id": "11-11-3",
+  "question": "What is the single most important design decision on this site?",
+  "answer": "That one file is the source of truth for everything.\n\n`data/profile.py` holds every fact: roles, dates, metrics, projects, skills, the About write-up and\nthe build log. The HTML pages render from it. The retrieval index is built from it at import time.\nThe system prompt pulls his name, role and email from it. And the resume PDF is now generated from it\nby a script, rather than maintained as a separate document."
+ },
+ {
+  "id": "11-11-4",
+  "question": "How are the statistics on the About page produced?",
+  "answer": "They are measured from the running system when the app starts, rather than typed into the page.\n\nThe chunk count comes from the actual retrieval index. The evaluation score comes from actually running\nthe evaluation suite — the app imports the eval module at boot, runs it quietly, and writes the pass\ncount and the breakdown of must-match versus must-decline questions into the About section. If the\neval fails to import or run, the stat keeps its previous value rather than breaking the page, because\na statistic should never be the reason a portfolio returns an error."
+ },
+ {
+  "id": "11-11-5",
+  "question": "How is the site hosted, and what does it cost?",
+  "answer": "It runs on free tiers, and costs nothing to operate. That was a design constraint from the start\nrather than a happy accident.\n\nThe live site is a serverless Flask function on Vercel. The repository also carries configuration for\nRender, for a Docker image targeting Hugging Face Spaces, and a Procfile for Gunicorn, with a written\ndeployment plan comparing them: Render's free instance sleeps after about fifteen minutes idle so the\nfirst visit takes around fifty seconds to wake; Spaces does not sleep; Vercel has the fastest cold\nstart but a hard per-request time limit."
+ },
+ {
+  "id": "11-11-7",
+  "question": "What is the \"build log\" and why is it on a portfolio?",
+  "answer": "It is a list of twelve bugs that shipped broken on this site before he caught them, each with the\nsymptom, the cause and the fix. It sits collapsed at the bottom of the About page, deliberately\nsecondary.\n\nIts stated reason: how a system fails says more than how it looks when it works. A portfolio of\nsuccesses tells you nothing about how someone behaves when something goes wrong, which is most of the\njob."
+ },
+ {
+  "id": "11-11-8",
+  "question": "What is not finished on this site?",
+  "answer": "The published roadmap lists these, and they are genuinely undone rather than modestly undersold.\n\n**The evaluation suite is not in CI.** It exits non-zero on failure specifically so it can gate a merge,\nand it does not yet. A check that depends on someone remembering to run it will eventually not run.\n\n**Answers are not streamed.** The client waits for the whole response before showing anything. With\ncurrent response times of a couple of seconds this is tolerable; it is still a user-experience gap."
+ },
+ {
+  "id": "11-11-9",
+  "question": "How does the front end work without a framework?",
+  "answer": "Plain server-rendered HTML from Jinja templates, one stylesheet and one vanilla JavaScript file of a few\nhundred lines. No React, no build step.\n\nThe reasoning is proportionality. The page is a handful of sections and one chat panel. A framework\nwould add a build pipeline, a dependency tree and a bundle for interactions that are a few event\nlisteners. Server rendering also means the content is present in the HTML, so it is readable by crawlers\nand by anyone with scripts disabled."
+ },
+ {
+  "id": "11-11-10",
+  "question": "How is the interview corpus behind this assistant built?",
+  "answer": "It is roughly a hundred pages of the questions visitors actually ask about him — fit, the Venera work,\nretrieval, prompting, fine-tuning, evaluation, projects, behaviour — each with the answer the assistant\nshould give, and each tagged with the resume facts it rests on.\n\nIt is authored as Markdown because a person has to be able to read and edit it; it is a document first\nand a dataset second. A parser turns it into structured records — question, answer, follow-up, tags,\ndifficulty, who asks it, and what it is grounded in — and reports its own length in words and pages\nagainst a stated constant, so \"a hundred pages\" is a measurement rather than a claim."
+ },
+ {
+  "id": "12-12-1",
+  "question": "Tell me about a time he caught a serious problem before it reached users.",
+  "answer": "**Situation.** During his internship at Venera Technologies he was doing release checks on the media\nquality control platform ahead of a build going out.\n\n**Task.** Release readiness — confirming the build was safe to ship, not just that the tests were green.\n\n**Action.** He found a severity-1 failure: a service returning 503 under conditions the build had not\nbeen exercised against. Rather than logging it and moving on, he raised it immediately and coordinated\nthe same-day hotfix across dev and product — getting the fix specified, built, verified and into the\nrelease rather than letting the build slip or ship with it."
+ },
+ {
+  "id": "12-12-2",
+  "question": "Tell me about a mistake he made and what he did about it.",
+  "answer": "**Situation.** An early version of his portfolio assistant was designed so that retrieval always\nreturned *something*. When nothing in the resume matched a question, it substituted a few default\nsections so the model always had material to answer from.\n\n**Task.** It felt like robustness. It was a design error, and he was the one who made it."
+ },
+ {
+  "id": "12-12-3",
+  "question": "Tell me about a time he had to learn something new quickly.",
+  "answer": "**Situation.** When he converted to full-time at Venera in August, he was moved onto the company's first\ngenerative-AI feature — a chatbot to generate QC templates for Pulsar, their legacy on-premise product.\nThere was no internal precedent; nobody at the company had built one.\n\n**Task.** Become the primary engineer on it, owning both the implementation and the testing, having spent\nthe previous six months in quality engineering rather than building AI systems in production."
+ },
+ {
+  "id": "12-12-4",
+  "question": "Tell me about a time data told him something he didn't expect.",
+  "answer": "**Situation.** After fixing a retrieval bug on his assistant, he wrote it up in the site's public build log,\nwhich is part of the corpus the assistant searches.\n\n**Task.** It was documentation. It was not supposed to change any behaviour.\n\n**Action.** The next run of the evaluation suite dropped from 36 of 36 to 34 of 36. Nothing in the retrieval\ncode had changed. He traced it and found that the write-up itself was the cause: describing the bug had\nnamed the exact terms involved, and because the build log is indexed like every other part of the site,\nthose words were now in the corpus and reintroduced the very matching behaviour the bug was about. He\nrewrote the entry in deliberately generic language and the suite returned to 36 of 36."
+ },
+ {
+  "id": "12-12-5",
+  "question": "Tell me about a time he disagreed with the conventional approach.",
+  "answer": "**Situation.** Building the assistant for this site, the conventional recipe was obvious: embed the resume,\nstore the vectors in a hosted vector database, retrieve by similarity.\n\n**Task.** Choose a retrieval approach for a corpus of about thirty short chunks, on free hosting, that had to\nkeep working with no API keys at all.\n\n**Action.** He went against the default and used BM25 lexical retrieval in-process, then wrote down why:\nembeddings would add a network round trip, a cold start and a bill, for a recall gain he could not measure at\nthat size. He identified that the real problem was not similarity at all but vocabulary — recruiters ask \"can\nhe do X\" and resumes say \"built X\" — and solved that directly with stemming, phrase normalisation and a\nweighted synonym layer. Then he built an evaluation suite to prove the choice rather than just argue it."
+ },
+ {
+  "id": "12-12-7",
+  "question": "Tell me about a time a user found a problem he missed.",
+  "answer": "**Situation.** His assistant gives answers that can run to several paragraphs, displayed in a chat panel.\n\n**Task.** It worked in his testing. A user reported that it did not work for them.\n\n**Action.** The report was that long answers opened scrolled to their *last* line — you landed on the closing\nsentence and had to scroll back up to find the start. He had followed standard chat behaviour, which pins the\nnewest message to the bottom of the panel. That is right for short turns and wrong for anything taller than the\npanel, and his own tests had mostly used short questions. He changed it so a new answer scrolls its first line to\nthe top, clamped so a short reply does not leave empty space."
+ },
+ {
+  "id": "12-12-8",
+  "question": "Tell me about a time he worked under a hard constraint.",
+  "answer": "**Situation.** Pulsar, the product his generative-AI feature lives in, is deployed on-premise at customer sites.\nThose customers run it that way specifically so their media and workflows stay on their own infrastructure.\n\n**Task.** Build a chatbot that turns an operator's plain-language description into a valid QC template — without\nany call to an external AI service."
+ },
+ {
+  "id": "12-12-9",
+  "question": "Tell me about a time a system looked healthy but wasn't.",
+  "answer": "**Situation.** His assistant had a valid API key configured, and its health check reported the model engine as\nlive.\n\n**Task.** Everything looked green. The answers, though, were coming back as extracted resume text rather than\nwritten responses."
+ },
+ {
+  "id": "12-12-10",
+  "question": "Tell me about something he's proud of that isn't technical.",
+  "answer": "The honest version is that the resume does not cover much outside his work, and this assistant will not invent\nhobbies or personal achievements for him. If you want to know him as a person, that is a conversation to have with\nhim directly — his email is jeetendrapatel1711@gmail.com.\n\nWhat the record does show is a disposition, and it is visible in how he presents his own work rather than in any\nsingle achievement:"
+ },
+ {
+  "id": "12-12-11",
+  "question": "Tell me about a time a check passed but the system was still broken.",
+  "answer": "**Situation.** After replacing a retired model, he redeployed this site and ran its health probe — the check that makes one\nreal call to the model provider to prove the key works.\n\n**Task.** Confirm the live site was answering with the model again."
+ },
+ {
+  "id": "13-13-1",
+  "question": "Isn't \"AI Engineer\" an inflated title for someone a year out of college?",
+  "answer": "It would be if he claimed seniority with it. He does not.\n\nHis actual job title is Associate Software Engineer at Venera Technologies. \"AI Engineer\" is the role\nhe is targeting and the kind of work he is doing: since converting to full-time in August, his primary\nwork has been building a generative-AI feature — a retrieval-augmented chatbot on Qwen models that\ngenerates QC templates for Pulsar. Describing that as AI engineering work is accurate. Describing him as\na senior AI engineer would not be, and nothing on this site does."
+ },
+ {
+  "id": "13-13-2",
+  "question": "How much of his Venera AI work was really the consultant's?",
+  "answer": "A reasonable suspicion, and the resume invites it by stating the consultant openly rather than hiding\nthem — which is itself a small point in his favour.\n\nThe division as he describes it: he is the primary engineer on the feature, built it day to day, and owns\nboth the implementation and the testing. The consultant was engaged because Venera had never built a\ngenerative-AI feature and had no internal expertise to check direction against. That is expert support on\na first-of-its-kind project, not someone else doing the work."
+ },
+ {
+  "id": "13-13-3",
+  "question": "Anyone can build a RAG demo in a weekend. What makes his different?",
+  "answer": "He would agree with the premise. A RAG demo is a weekend. A RAG system that is right, and that knows when it\nis not, is the work — and the difference is almost entirely in things that do not show up in a demo.\n\nWhat his have that a weekend demo does not:"
+ },
+ {
+  "id": "13-13-4",
+  "question": "His experience is mostly testing. Why would we hire a tester as an engineer?",
+  "answer": "You would not, if that were the record. It is half of it.\n\nSix months of his career were quality engineering: automated test suites, API validation, release readiness,\ndefect management. Since August he has been building — the primary engineer on a generative-AI feature, owning\nits implementation. Outside work, everything he has built is software: a document Q&A system on LangChain and\nPinecone, NLP pipelines on Hugging Face, and this site, which is a few thousand lines of retrieval, provider\nintegration, evaluation and front end with nobody asking him to build it."
+ },
+ {
+  "id": "13-13-5",
+  "question": "Why should we trust anything this assistant says about him?",
+  "answer": "You should not trust it blindly, and the site is designed on the assumption that you will not.\n\nWhat it does to earn a measured amount of trust:"
+ },
+ {
+  "id": "13-13-7",
+  "question": "Couldn't his metrics be exaggerated? They're all self-reported.",
+  "answer": "Yes — they are his claims, and an assistant built on his resume cannot independently verify them. It would be\ndishonest to pretend otherwise.\n\nWhat can be said about them:\n\n**Some are verifiable right now.** The 36/36 retrieval evaluation and the 0.04 millisecond retrieval time are about\nthis site, and the repository is public. Clone it, run `python eval_retrieval.py`, and you have checked it yourself.\nThe chunk count and eval score on the About page are computed by the running application at startup, not typed in,\nprecisely so they cannot drift."
+ },
+ {
+  "id": "13-13-8",
+  "question": "Why hasn't he built anything with larger scale or real traffic?",
+  "answer": "Because about a year into a career you mostly work on what your employer works on, and his employer builds a\ncommercial media quality control product rather than a consumer platform.\n\nThat is a genuine gap and not one he would argue away. The largest things he has worked on are Venera's platform —\na cloud product on AWS microservices and an on-premise product deployed at customer sites — and the busiest system\nhe owns is a portfolio that recruiters visit. He has not had to reason about thousands of requests per second,\nsharded indexes, autoscaling inference, or the cost behaviour of a system under real load."
+ },
+ {
+  "id": "13-13-9",
+  "question": "What would a former colleague say about him?",
+  "answer": "That is a question for a former colleague, not for an assistant trained on his resume. It would be inventing\ntestimony, and it will not do that.\n\nWhat the record does support, which a reference could confirm or contradict:\n\n- He was converted from a six-month internship to a full-time offer at Venera, on the basis of measured\n  results — a decision his managers made, which is some evidence about how they saw his work.\n- After converting, he was trusted with the company's first generative-AI feature, with ownership of both its\n  implementation and its testing. Companies do not usually hand a first-of-its-kind feature to someone they are\n  unsure of.\n- His QA work involved coordinating with dev and product teams — defining acceptance criteria, reviewing test\n  strategies, and pulling a same-day hotfix together across people — which is collaborative work, not solo work."
+ },
+ {
+  "id": "13-13-10",
+  "question": "Why is he leaving a job where he just got the most interesting project?",
+  "answer": "The resume says he is open to AI Engineer and ML Engineer roles. It does not say why, or on what timeline, and this\nassistant will not invent his reasons.\n\nWhat can be said from the record:\n\n- He is currently employed at Venera Technologies, and the generative-AI feature there is his primary work. \"Open to\n  roles\" is not the same as \"leaving\".\n- The direction of his career is consistent: from QA into building, and from building software into building AI\n  systems. A role that is primarily AI engineering, with larger scale and more experienced people to learn from, would\n  continue that direction. He names exposure to larger systems and review from senior engineers as the things he most\n  wants."
+ },
+ {
+  "id": "13-13-11",
+  "question": "What doesn't he know that he should, for this role?",
+  "answer": "Measured against a typical AI engineering role, the gaps he would name himself:"
+ },
+ {
+  "id": "14-14-1",
+  "question": "How strong is his Python?",
+  "answer": "Python is his primary language by a wide margin, and it is the one skill on his list used everywhere: in\nproduction at Venera, in every project, and throughout this site.\n\nThe evidence of level, rather than the claim:"
+ },
+ {
+  "id": "14-14-2",
+  "question": "Which of his AI skills are production-grade and which are learned?",
+  "answer": "The skills list is flat; the reality is layered. Sorted honestly:\n\n**Used in production, at Venera:**\n- Retrieval-augmented generation, with embedding-based retrieval over a local vector store\n- Open-weight models (Qwen) running inside an on-premise deployment\n- Prompt engineering and grounding\n- Structured output with schema validation\n- LLM evaluation — writing and maintaining the eval set\n\n**Used in finished projects with measured results:**\n- LangChain and Pinecone (document Q&A over 200 pages, ~70% faster retrieval)\n- OpenAI API, Streamlit\n- Hugging Face Transformers for classification and summarisation, with a prompt-evaluation loop\n- BM25 and lexical retrieval engineering, multi-provider LLM integration with failover (this site)\n- Hybrid retrieval and a LangGraph agent over the interview corpus behind this assistant"
+ },
+ {
+  "id": "14-14-3",
+  "question": "Does he know SQL and databases?",
+  "answer": "SQL and MySQL are on his skills list, supported by one project and one certification.\n\n- **Student Data Entry System** — a Java servlet CRUD application backed by MySQL, where optimising the JDBC queries\n  reduced average database response time by 30%. That is the concrete evidence of working database code, including\n  some query tuning.\n- **Database Fundamentals** from LinkedIn Learning — relational modelling and SQL — completed."
+ },
+ {
+  "id": "14-14-4",
+  "question": "What testing tools does he know?",
+  "answer": "This is the most thoroughly exercised part of his toolset, because it was his job for six months.\n\n- **pytest** — Python test framework, used professionally and in his own work.\n- **Selenium WebDriver** with the **Page Object Model** — 150 automated scripts on Venera's platform; the POM\n  structure is what keeps a suite that size maintainable.\n- **Selenium Grid** — parallel cross-browser execution across three browsers and two operating systems, which cut\n  manual cross-browser effort by about 80%.\n- **Postman** — REST API validation across 120 endpoints on AWS microservices, at a 98.3% pass rate.\n- **JUnit** — Java unit testing."
+ },
+ {
+  "id": "14-14-5",
+  "question": "What cloud and DevOps experience does he have?",
+  "answer": "Working experience within established systems rather than ownership of infrastructure — accurate for his level.\n\n**AWS** is the substantive one. He has worked since February 2026 on Quasar, Venera's cloud-native media QC product\nbuilt as microservices on AWS: validating 75 of its REST endpoints, and doing AWS cloud-native release readiness as a\ndefined part of his role.\n\n**CI/CD and tooling:** Jenkins, Git and GitHub, Bitbucket, Gradle and Maven are on his list. In practice he has worked\nwithin pipelines — automated suites running as quality gates, builds and releases as part of release readiness — rather\nthan building them."
+ },
+ {
+  "id": "14-14-7",
+  "question": "What is his experience with Git and collaboration tools?",
+  "answer": "Routine professional use.\n\nAt Venera: **Bitbucket** for source control with structured pull-request reviews on test assets, and **Zoho** for defect\ntracking — 79 defects managed, 61 resolved, 10 critical.\n\nFor his own work: **Git and GitHub**. This site's repository is public, and its history is written the way he would want\na teammate's to be — small commits with messages that explain *why* the change was made, not just what changed. The build\nlog on the site is effectively a set of structured incident notes."
+ },
+ {
+  "id": "14-14-8",
+  "question": "How good is he at explaining technical work to non-technical people?",
+  "answer": "The best evidence is the site itself, since most of it is technical work written for an audience that is not purely\ntechnical.\n\nThe About section explains a retrieval system — why BM25 instead of embeddings, why nine providers, why it answers with no\nAPI keys — in terms of the decision and its consequence rather than the mechanism. The build log explains twelve bugs as\nsymptom, cause and fix, in plain language, without hiding the embarrassing ones. That is a structure that works for a\nrecruiter and an engineer at the same time."
+ },
+ {
+  "id": "14-14-9",
+  "question": "What tools would he need to learn to be effective here?",
+  "answer": "It depends on your stack, and this assistant does not know your stack — so the useful answer is which categories are new\nto him and which transfer immediately.\n\n**Transfers immediately:** Python, retrieval and RAG design, prompt engineering and grounding, evaluation design, structured\noutput and validation, LangChain, Git-based workflows, AWS basics, working inside a release process.\n\n**Short ramp — he has adjacent experience:**\n- A different vector store or embedding model (he has used Pinecone and a local store; the concepts carry over).\n- A different LLM provider or SDK (he has integrated nine behind one interface).\n- A different agent framework (he has built with LangGraph).\n- A different CI system (he has worked within Jenkins-based pipelines)."
+ },
+ {
+  "id": "14-14-10",
+  "question": "Has he used Streamlit, Flask or other app frameworks?",
+  "answer": "Two, for different purposes, and he chose each for a reason.\n\n**Streamlit** — on the document Q&A chatbot. It is the right tool for putting an interface on a data or ML workflow quickly:\na working UI in a few dozen lines with no front-end code. The trade-off is limited control over layout and behaviour, which is\nfine for an internal tool or a demo and constraining for a public product."
+ },
+ {
+  "id": "14-14-11",
+  "question": "What does his AI Engineer Bootcamp cover, and is it worth anything?",
+  "answer": "It is **The AI Engineer Bootcamp 2026** from 365 Careers on Udemy, currently in progress. The syllabus covers LLMs, NLP,\nLangChain, LangGraph, Hugging Face, Pinecone, the OpenAI API, RAG and Streamlit.\n\nOn its worth, he would give the same answer a sceptical hiring manager would: a course certificate on its own proves very\nlittle. It shows that someone chose to learn a subject, not that they can apply it."
+ },
+ {
+  "id": "15-15-1",
+  "question": "What is his educational background?",
+  "answer": "He holds a **B.E. in Computer Science Engineering from Chandigarh University, Punjab**, graduating in **June 2026**\nwith a **CGPA of 8.4 out of 10**.\n\nThe degree gives him the standard computer science foundation — data structures, algorithms, operating systems,\ndatabases, networks, and programming in C, C++ and Java — which is where the lower-ranked languages on his skills\nlist come from."
+ },
+ {
+  "id": "15-15-2",
+  "question": "What training has he done outside his degree?",
+  "answer": "Four certifications or courses on record:\n\n- **The AI Engineer Bootcamp 2026** — 365 Careers, on Udemy. **In progress.** Covers LLMs, NLP, LangChain, LangGraph,\n  Hugging Face, Pinecone, the OpenAI API, RAG and Streamlit.\n- **Android Developer Badges** — Google. Completed. Kotlin and the Android SDK.\n- **Database Fundamentals** — LinkedIn Learning. Completed. Relational modelling and SQL.\n- **Design Thinking** — LinkedIn Learning. Completed. Product discovery and problem framing."
+ },
+ {
+  "id": "15-15-3",
+  "question": "Where does he want to be in a few years?",
+  "answer": "The resume states the near-term goal — AI Engineer or ML Engineer roles — and the direction of travel is clear from his\nrecord. What his specific five-year ambitions are is for him to say; this assistant will not put words in his mouth.\n\nWhat the record shows about direction:\n\n- **From verifying to building.** Six months of QA, then ownership of a feature's implementation. Every step has moved toward\n  building things rather than checking them — while keeping the checking.\n- **From software to AI systems.** His self-directed work has been entirely LLM systems for over a year, and his job moved in the\n  same direction in August.\n- **From small to larger.** The things he names as wanting next are exposure to larger-scale systems and review from more\n  experienced engineers, which is what someone aiming at senior engineering, rather than management or research, typically looks\n  for."
+ },
+ {
+  "id": "15-15-4",
+  "question": "Where is he based, and is he open to relocating or remote work?",
+  "answer": "He is based in **Noida, Uttar Pradesh, India**, and currently works at Venera Technologies in Noida.\n\nHis preferences on relocation, remote, hybrid or on-site work are **not covered by his resume**, and this assistant will not guess\nat them — getting that wrong would waste both your time and his. Ask him directly at **jeetendrapatel1711@gmail.com**.\n\nTwo things that are on the record and may be relevant:"
+ },
+ {
+  "id": "15-15-5",
+  "question": "What is his notice period and when could he start?",
+  "answer": "That is not on his resume, so this assistant does not know and will not estimate it.\n\nWhat is on the record: he is **currently employed** as an Associate Software Engineer at Venera Technologies, and he is **open to AI\nEngineer and ML Engineer roles**. Being employed usually means a notice period applies, but its length depends on his contract, and\nguessing would only mislead you."
+ },
+ {
+  "id": "15-15-7",
+  "question": "How do I contact him, and what should I send?",
+  "answer": "What makes a first message easy to act on, from his side: the role and level, the team and what they build, whether it is primarily\nLLM product work or something else, the location and working arrangement, and the next step you are proposing. If you want him to\nprepare something — a walkthrough of the Venera feature, a code review exercise, or a take-home — saying so up front lets him give it\nproper time."
+ },
+ {
+  "id": "15-15-8",
+  "question": "Would he do a take-home assignment or a technical test?",
+  "answer": "His willingness and availability for one are questions for him; the resume does not say.\n\nWhat the record suggests about how he would approach one, which is the more useful half of the answer:"
+ },
+ {
+  "id": "15-15-9",
+  "question": "What makes him different from other candidates at his level?",
+  "answer": "Three things, and they are distinct enough to be checkable rather than generic.\n\n**He has shipped generative AI into a real product.** Most early-career AI candidates have projects. He is the primary engineer on Venera\nTechnologies' first generative-AI feature: a retrieval-augmented chatbot on Qwen open-weight models that generates QC templates for an\non-premise product, running entirely inside the customer's deployment, with every generated template validated against a schema before it\ncan be used. Constraints, consequences and a customer — that is a different kind of evidence from a project."
+ },
+ {
+  "id": "15-15-10",
+  "question": "Can I see his resume?",
+  "answer": "Yes. The resume is a one-page PDF linked from the **Resume** button at the top of every page on this site, and from the Contact section.\n\nOne detail worth knowing: the PDF is generated from the same source file as this website and this assistant's knowledge. That was done on\npurpose — the earlier, hand-maintained version drifted out of step with the site — so the PDF, the pages and the answers here cannot disagree.\nIf you notice a discrepancy anyway, it is a bug, and he would want to hear about it."
+ },
+ {
+  "id": "15-15-11",
+  "question": "Is there anything he would want a recruiter to know that isn't on the resume?",
+  "answer": "This assistant can only speak from what is on the record, so it cannot tell you anything that is not on the resume — and it will not invent\nsomething to sound helpful.\n\nWhat it can do is point to the things on the record that a resume format tends to flatten:"
+ }
+]
