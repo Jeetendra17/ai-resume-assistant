@@ -1,33 +1,35 @@
 """Parse the interview corpus from Markdown into structured records.
 
-The corpus is authored as Markdown because a human has to be able to read and
-edit it — it is a study document first and a dataset second. This module is the
-single place that turns it into records, so retrieval, the fine-tuning dataset
-builder and the site all consume exactly the same objects.
+The corpus is the set of questions visitors ask this site about Jeetendra, with
+the answers the assistant should give. It is authored as Markdown because a human
+has to be able to read and edit it — a document first and a dataset second. This
+module is the single place that turns it into records, so retrieval, the
+fine-tuning dataset builder and the site all consume exactly the same objects.
 
 Format, per source file:
 
-    # Part 6 — Large Language Models
+    # Part 2 — The Venera Generative-AI Chatbot
 
     > One-paragraph introduction to the part.
 
-    ### Q6.1 — How does a decoder-only transformer generate text?
+    ### Q2.2 — Why Qwen and open-weight models rather than an API?
 
-    - **Difficulty:** intermediate
-    - **Tags:** transformers, decoding, inference
+    - **Difficulty:** engineer
+    - **Tags:** qwen, open-weights, on-premise
+    - **Asked by:** Engineer, Hiring Manager
 
     **Answer.**
 
-    ...prose...
+    ...prose, which may itself use **Bold lead-ins.** freely...
 
     **Follow-up.** ...
 
-    **Watch out for.** ...
+    **Grounded in.** Pulsar on-premise deployment, Qwen open-weight models
 
-Parsing is deliberately strict about the two structural markers (`### Q<id> —`
-and `- **Key:** value`) and tolerant about everything else: any `**Label.**` at
-the start of a line opens a new labelled block, so adding a section to the
-document does not mean editing this parser.
+Parsing is strict about the structural markers: `### Q<id> —` headings,
+`- **Key:** value` metadata lines, and exactly three section labels —
+`**Answer.**`, `**Follow-up.**` and `**Grounded in.**`. Any other bold lead-in
+is ordinary prose and stays inside the answer.
 
 Run directly to rebuild `questions.json`:
 
@@ -53,7 +55,17 @@ WORDS_PER_PAGE = 500
 _PART_RE = re.compile(r"^#\s+Part\s+(\d+)\s+[—-]\s+(.+?)\s*$", re.M)
 _QUESTION_RE = re.compile(r"^###\s+Q([\d.]+)\s+[—-]\s+(.+?)\s*$", re.M)
 _META_RE = re.compile(r"^-\s+\*\*(?P<key>[A-Za-z ]+):\*\*\s*(?P<value>.+?)\s*$", re.M)
-_BLOCK_RE = re.compile(r"^\*\*(?P<label>[A-Z][A-Za-z' \-]*)\.\*\*\s*", re.M)
+# Only these labels delimit sections. An earlier version accepted any bold
+# lead-in (`**Anything.**`) as a new section, which silently chopped every
+# answer that uses bold lead-ins in its own prose -- "**Situation.**" in the
+# behavioural answers, "**Scale.**" in a list of gaps -- into fragments. The
+# page count still looked right because it summed the fragments; retrieval,
+# which indexes the answer field, would have searched truncated text.
+SECTION_LABELS = ("Answer", "Follow-up", "Grounded in")
+_BLOCK_RE = re.compile(
+    r"^\*\*(?P<label>" + "|".join(re.escape(l) for l in SECTION_LABELS) + r")\.\*\*\s*",
+    re.M,
+)
 
 _LIST_KEYS = {"tags", "asked by"}
 
@@ -72,9 +84,9 @@ class Question:
     asked_by: list[str] = field(default_factory=list)
     follow_up: str = ""
     # Which resume facts the answer rests on. This is not decoration: the corpus
-    # speaks in Jeetendra's voice about his own record, so every answer has to be
-    # traceable to something `data/profile.py` actually says. `audit.py` reads
-    # this field to flag any answer that cites nothing.
+    # makes claims about a real person's record, so every answer has to be
+    # traceable to something `data/profile.py` actually says. `build()` refuses
+    # to produce a corpus containing an answer that cites nothing.
     grounded_in: list[str] = field(default_factory=list)
     extras: dict[str, str] = field(default_factory=dict)
 
@@ -97,11 +109,10 @@ def _slug(label: str) -> str:
 
 
 def _split_blocks(body: str) -> dict[str, str]:
-    """Split a question body into its `**Label.**` sections, in order.
+    """Split a question body into its Answer / Follow-up / Grounded-in sections.
 
-    Text before the first label is returned under the empty key, which lets a
-    question omit `**Answer.**` and still parse — a few of the behavioural
-    questions read better that way.
+    Text before the first label is returned under the empty key, so a question
+    that omits the `**Answer.**` label still parses.
     """
     marks = list(_BLOCK_RE.finditer(body))
     if not marks:
@@ -116,8 +127,7 @@ def _split_blocks(body: str) -> dict[str, str]:
         end = marks[i + 1].start() if i + 1 < len(marks) else len(body)
         text = body[mark.end() : end].strip()
         key = _slug(mark.group("label"))
-        # A repeated label appends rather than overwrites; "Follow-up" shows up
-        # more than once in a few of the longer system-design questions.
+        # A repeated label appends rather than overwrites.
         blocks[key] = f"{blocks[key]}\n\n{text}" if key in blocks else text
 
     return blocks
@@ -190,6 +200,22 @@ def build() -> dict:
             raise ValueError(f"{path.name}: parsed 0 questions — check the `### Q…` headings")
         parts.append({"part": part, "topic": topic, "intro": intro, "count": len(found), "file": path.name})
         questions.extend(found)
+
+    # Fail loudly on a malformed entry. A missing section does not raise on its
+    # own -- it just produces an empty field -- and a truncated answer is exactly
+    # the kind of fault that looks fine in aggregate statistics.
+    problems = []
+    for q in questions:
+        if len(q.answer.split()) < 60:
+            problems.append(f"{q.id}: answer is only {len(q.answer.split())} words")
+        if not q.grounded_in:
+            problems.append(f"{q.id}: no **Grounded in.** facts")
+        if not q.follow_up:
+            problems.append(f"{q.id}: no **Follow-up.**")
+        if q.extras:
+            problems.append(f"{q.id}: unexpected sections {sorted(q.extras)}")
+    if problems:
+        raise ValueError("corpus check failed:\n  " + "\n  ".join(problems))
 
     seen: dict[str, str] = {}
     for q in questions:
