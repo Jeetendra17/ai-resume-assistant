@@ -454,3 +454,43 @@ not justify a vector database. The 100-page interview corpus did justify hybrid 
 it.
 
 **Grounded in.** Document Q&A 200-page corpus, Pulsar template corpus, interview corpus, 30-chunk resume index
+
+### Q3.12 — How would he build a RAG system over our internal documents?
+
+- **Difficulty:** engineer
+- **Tags:** rag, design, approach, retrieval
+- **Asked by:** Hiring Manager, Engineer
+
+**Answer.**
+
+The order he would work in, drawn from the three retrieval systems he has built:
+
+**1. Collect real questions before touching the documents.** Twenty or thirty questions people actually ask, each paired
+with the passage that answers it — plus questions the documents do *not* answer. That set is the evaluation, and it is
+built first because every later decision is judged against it. His own suite has 29 must-match and 7 must-decline cases.
+
+**2. Understand the constraints.** Can data leave your network? On the Pulsar feature it could not, which meant local
+open-weight models, local embeddings and a local vector store — a completely different architecture from calling a hosted
+API. What does a wrong answer cost? Who is allowed to see which documents? Tenant or permission filtering belongs in the
+query to the index, never as a post-filter and never in the prompt.
+
+**3. Chunk by structure.** Split on the documents' own boundaries — headings, sections, list items — so each chunk is about
+one thing, and attach a short header carrying the document and section so a fragment keeps its subject.
+
+**4. Start with the cheapest retrieval that could work, then measure.** For a small corpus that may be lexical search, which
+is what he chose for thirty resume chunks. For anything larger or phrased in varied language, hybrid: lexical and semantic
+passes fused by rank, which covers exact terms and paraphrase at the same time. Add a reranker over the shortlist if the
+eval says precision is the problem.
+
+**5. Ground and constrain generation.** The prompt says retrieved context is the whole record; answers cite their sources;
+empty retrieval declines rather than improvising; structured output is validated in code.
+
+**6. Design the failure path.** What happens when the model provider is down or slow — his systems degrade to returning the
+retrieved text rather than erroring.
+
+**7. Log real traffic and grow the eval from it.** The questions people actually ask will differ from the ones you collected.
+
+**Follow-up.** *"How long would a first version take?"* — Depends on the corpus and constraints. The evaluation set is the
+part worth not rushing; the pipeline itself is fast to build.
+
+**Grounded in.** Three retrieval systems (Pinecone RAG, portfolio BM25, Pulsar local embeddings), eval design 29+7, hybrid retrieval over interview corpus, refusal and fallback design

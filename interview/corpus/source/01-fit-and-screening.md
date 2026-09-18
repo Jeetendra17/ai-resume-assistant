@@ -433,3 +433,40 @@ build log on this site lists twelve bugs that shipped broken before he caught th
 one where documenting a bug reintroduced it. The disposition seems consistent.
 
 **Grounded in.** Experience level, skills list, build log, current role tenure, career summary
+
+### Q1.12 — Would he suit a startup or a larger company better?
+
+- **Difficulty:** recruiter
+- **Tags:** fit, culture, startup, enterprise
+- **Asked by:** Recruiter, Hiring Manager
+
+**Answer.**
+
+Either can work, and the record suggests where each would stretch him.
+
+**What suits a startup.** He works independently: he was handed a feature with no internal precedent and owns both its
+implementation and its testing, and everything outside his job — including this site, with a few thousand lines of
+retrieval, provider integration, evaluation and front end — he built because he wanted to. He is comfortable across the
+stack, from retrieval code to deployment configuration to the stylesheet. And he is cost-conscious by habit: this site
+runs entirely on free tiers because it was designed to, not by accident.
+
+**What would stretch him at a startup.** His strongest habit is building the measurement before the feature. On a team
+that needs to ship something rough on day two and learn from real users, that instinct can cost a week. He also has less
+experience than a startup's first engineers usually need with infrastructure he would have to own outright.
+
+**What suits a larger company.** He came up through a real SDLC — acceptance criteria, release readiness, structured code
+review, defect management — on a commercial product with customers. He is used to working inside constraints he did not
+choose, which is most of what engineering at a larger company involves, and his evaluation-first discipline is exactly what
+a team shipping AI to many users needs.
+
+**What would stretch him at a larger company.** Scale he has not seen, and operating inside a big organisation's process
+at more senior levels.
+
+The honest summary: he would probably do best somewhere that ships LLM features to real users, values correctness, and has
+experienced engineers around him — which describes some startups and some larger teams. The company's size matters less
+than whether that is true.
+
+**Follow-up.** *"What does he say he wants?"* — Exposure to larger-scale systems and code review from senior engineers.
+Ask him how he weighs those against scope and ownership.
+
+**Grounded in.** Pulsar feature ownership, self-directed projects, free-tier design, SDLC experience, eval-first habit, stated wants

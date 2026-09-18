@@ -342,3 +342,37 @@ engineering practice, and the site is built around it.
 check every claim here against the resume and the source code.
 
 **Grounded in.** Build log (12 bugs, bug 09 user-credited), SYSTEM_PROMPT honesty instruction, consultant credit on resume, published roadmap, contact email
+
+### Q12.11 — Tell me about a time a check passed but the system was still broken.
+
+- **Difficulty:** behavioural
+- **Tags:** health-checks, latency, debugging, star
+- **Asked by:** Engineer, Hiring Manager
+
+**Answer.**
+
+**Situation.** After replacing a retired model, he redeployed this site and ran its health probe — the check that makes one
+real call to the model provider to prove the key works.
+
+**Task.** Confirm the live site was answering with the model again.
+
+**Action.** The probe passed: reachable, "ok". But when he then asked the live site a real question, the answer came back
+from the local fallback instead of the model. The probe had asked the model to reply with a single word, which it did
+instantly. A real question carries a full retrieved context and needs a paragraph back, and with the new model that took
+around nine seconds — past the site's six-second timeout, so the app gave up and fell back exactly as designed. The probe was
+measuring whether the model was reachable, not whether it could do the actual job in time. He timed several models on the
+real question, switched to one answering in about two seconds, redeployed, and confirmed with real questions rather than the
+probe.
+
+**Result.** The live site answers from the model in about two seconds, and the verification steps in the deployment guide now
+include asking a real question, not just running the probe.
+
+What makes it worth telling is that it is the same lesson as an earlier bug on his build log, one level deeper. The first
+time, a health check reported a key as *present* when it was not *working*; he fixed that by making the probe do a real call.
+This time the probe did a real call and still did not represent real use. A check is only as good as its resemblance to the
+thing you actually care about.
+
+**Follow-up.** *"Would a better probe fix it?"* — Partly. The dependable fix is to verify with the real workload: a real
+question, with a real context, against the real time budget.
+
+**Grounded in.** Health probe design (/api/health?probe=1), 9 s vs 2 s model timing, LLM_TIMEOUT=6, build log bug 08, deployment verification steps

@@ -435,3 +435,39 @@ RAG retrieves facts to answer from, dynamic few-shot retrieves examples to imita
 chatbot does both at once.
 
 **Grounded in.** Pulsar retrieval of existing templates as context, constrained on-premise model, NLP prompt-evaluation loop
+
+### Q4.11 — Does he version his prompts, and how?
+
+- **Difficulty:** engineer
+- **Tags:** prompt-versioning, registry, evaluation, maintainability
+- **Asked by:** Engineer
+
+**Answer.**
+
+Yes, and the reasons are practical rather than bureaucratic: you cannot compare, roll back or explain a prompt that exists
+only as a string edited in place.
+
+On the resume assistant the system prompt is a single constant in one module, which is enough for a system with one prompt.
+Over the interview corpus behind this assistant there is a proper registry, because there are several prompt variants being
+compared. Each version records:
+
+- **An identifier and a one-line description**, so a result can name exactly which prompt produced it.
+- **The template itself**, with its variables — the retrieved context, the question, and any selected examples.
+- **What it was written to fix.** Every prompt in a mature system is the way it is because of a specific failure; writing the
+  failure down beside the text is what later lets someone delete a clause safely instead of leaving it forever.
+- **Its score on the evaluation set.**
+
+The progression through versions follows the order that tends to matter: a plain instruction first, then an explicit role and
+the rule that retrieved context is the whole record, then an explicit refusal path, then retrieved examples of good answers, then
+a requirement to cite sources. Each step is kept only if the score moves.
+
+The discipline that makes it work is the same one behind his retrieval eval: a prompt change is a behaviour change, so it gets
+scored before it ships, and a regression on one class of question is as visible as an improvement on another.
+
+What he would caution against is treating a registry as the goal. Versioning only pays off because of the evaluation attached
+to it; a registry of unscored prompts is a filing system.
+
+**Follow-up.** *"How does he pick which version is live?"* — The highest-scoring one on the evaluation set that does not regress
+refusal behaviour. Refusal regressions disqualify a version even when its average improves.
+
+**Grounded in.** SYSTEM_PROMPT as single constant, interview prompt registry, NLP prompt-evaluation loop, retrieval eval discipline

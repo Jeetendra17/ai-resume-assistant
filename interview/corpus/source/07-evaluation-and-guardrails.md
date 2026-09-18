@@ -395,3 +395,42 @@ is usually a specification that was never actually shared.
 terms of what it costs, once. It is their call; the job is making sure it is an informed one.
 
 **Grounded in.** Eval-set methodology, acceptance criteria work with dev and product teams, build log discipline
+
+### Q7.11 — How would he evaluate an agent, rather than a single model call?
+
+- **Difficulty:** engineer
+- **Tags:** agents, evaluation, langgraph, traces
+- **Asked by:** Engineer
+
+**Answer.**
+
+By evaluating the path as well as the destination, because an agent can reach a correct answer by a bad route and a wrong
+answer by a mostly good one — and only the trace tells you which.
+
+The layers he would score, using the graph behind this assistant as the example:
+
+**End to end.** The same thing you would measure for any RAG system: is the final answer grounded, correct where a correct
+answer exists, and a refusal where it should be. This is the number a user experiences.
+
+**Per step.** Each node has its own contract, and each can be tested with fixed inputs:
+- Did routing send an out-of-scope question straight to a refusal without spending a model call?
+- Did retrieval return the passages the labelled set says it should?
+- Did the grading step correctly judge weak retrieval as weak, and strong retrieval as strong? A grader that approves
+  everything makes the retry loop pointless; one that rejects everything makes it expensive.
+- Did the rewrite step actually improve retrieval, or just change the words?
+- Did the verification step catch an answer whose claims were not in its citations?
+
+**Trajectory.** How many iterations did it take, how often does it hit the retry cap, and what does a typical run cost in
+calls and latency. An agent that is correct but takes three loops on most questions has a latency problem that no
+end-to-end accuracy number shows.
+
+**Termination.** Every loop must end. His graph caps retries at two and ends in a refusal rather than a third attempt,
+and that cap is itself something to test: feed it a question that can never retrieve well and confirm it stops.
+
+This is why the graph returns a trace of which nodes ran. Without it, evaluating an agent means evaluating only its final
+output, which hides most of the ways it can go wrong.
+
+**Follow-up.** *"Is per-step evaluation worth the effort?"* — For the steps that decide control flow, yes. A mis-calibrated
+grader silently changes the cost and quality of every run.
+
+**Grounded in.** Interview assistant LangGraph agent (route, retrieve, grade, rewrite, generate, verify), bounded retry, node trace, eval methodology

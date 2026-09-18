@@ -391,3 +391,40 @@ disagreements with conventional practice — BM25 over embeddings, no framework 
 in.
 
 **Grounded in.** Pulsar feature ownership with consultant support, self-directed projects, this site's scope, stated need for code review, documented design decisions
+
+### Q9.11 — What happens when an AI vendor retires the model your product uses?
+
+- **Difficulty:** engineer
+- **Tags:** vendors, model-retirement, resilience, production
+- **Asked by:** Engineer, Hiring Manager
+
+**Answer.**
+
+It happened to this site, to both of its providers at once, which makes it a real answer rather than a hypothetical.
+
+**What happened.** The default Groq model and the default Gemini model the site was configured for had both been retired
+by their vendors. Every call returned a 404 naming the model as no longer available. Because the provider chain treats any
+failure as "try the next one" and ends in an extractive fallback, the site kept answering throughout — from its local
+index, visibly labelled as such — rather than breaking.
+
+**How it was found.** Every answer reports which engine produced it, so it was obvious that nothing was coming from a model.
+The health probe, which makes one real call, returned the vendor's error message directly.
+
+**How the replacements were chosen.** Not by picking the newest name. He listed the models each key could use and timed the
+actual grounded question, several runs each, against the site's real budget: a six-second timeout, inside a serverless
+platform that kills requests at ten. The newest Gemini flash model took seven to nine seconds and returned "high demand"
+errors on repeat calls — on this platform, strictly worse than a lighter model answering in about two. On Groq, a Qwen model
+with its built-in reasoning turned off answered in under a second. Those became the defaults, with a second Gemini model as
+an automatic retry for capacity errors.
+
+**What it taught.** Vendors change models on their own schedule, so the model name belongs in configuration you can change
+without a deploy, the system needs more than one provider, and the failure path has to be designed before you need it. Those
+three things turned what could have been an outage into a configuration change.
+
+The same lesson applies with more force to a product like Pulsar, which is exactly why it runs on self-hosted open-weight
+models: nobody can retire them out from under a customer.
+
+**Follow-up.** *"How would you get warned earlier?"* — Alert on the fallback rate. It rose the moment the models disappeared,
+long before anyone would have complained.
+
+**Grounded in.** Retired default models (Groq and Gemini), provider chain and extractive fallback, engine reporting, benchmarked replacements, LLM_TIMEOUT=6, Pulsar open-weight choice
