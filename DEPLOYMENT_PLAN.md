@@ -5,6 +5,159 @@ anywhere. Every service below has a permanent free tier, not a trial.
 
 **Total time:** ~20 minutes. **Total cost:** $0.00/month.
 
+The site is already deployed. **For day-to-day changes, use the runbook directly
+below.** Sections 0–10 are the original first-time setup, kept for reference and for
+redeploying somewhere new.
+
+---
+
+## Runbook — how this site deploys today
+
+| | |
+|---|---|
+| Live URL | <https://jeetendra.vercel.app> |
+| Host | Vercel, project **`jeetendra`** (Hobby plan, free) |
+| Source | <https://github.com/Jeetendra17/ai-resume-assistant>, branch `main` |
+| Trigger | **Every push to `main` deploys to production automatically.** Build takes ~15 s. |
+| Model providers | Groq first, Gemini as automatic backup, local resume index if both fail |
+
+You do not need the Vercel CLI to deploy. GitHub is connected to the Vercel project,
+so pushing is deploying. (Deployments started from the CLI in this folder show up in
+the Vercel dashboard under the name "portfolio" — same project, just a different
+label taken from the folder name.)
+
+### R1. Ship a content or code change
+
+1. **Edit.** Resume content, projects, metrics and the About write-up all live in
+   `data/profile.py`. Interview answers live in `interview/corpus/source/*.md`.
+2. **Run the retrieval eval.** It must pass before anything ships.
+
+   ```powershell
+   python eval_retrieval.py
+   ```
+
+   Expect `recall@3 + out-of-scope: 36/36 (100%)`. It exits non-zero on failure. Run
+   it after *content* edits too, not only code edits: in a retrieval system, changing
+   the text changes the search results (build log #05 and #12).
+3. **If `data/profile.py` changed, regenerate the resume PDF**, so the download and
+   the site say the same thing:
+
+   ```powershell
+   python build_resume.py
+   ```
+
+   It should report `1 page`. If it reports more, cut a bullet in `profile.py` rather
+   than shrinking the type.
+4. **If the interview corpus changed, rebuild it** and check the page count:
+
+   ```powershell
+   python -m interview.corpus.build
+   ```
+5. **Commit and push to `main`.**
+
+   ```powershell
+   git add -A
+   git commit -m "Describe the change"
+   git push origin main
+   ```
+6. **Verify the live site** about 30 seconds later (§R4).
+
+### R2. Change an API key, model or provider setting
+
+Settings are **environment variables on the Vercel project**, never in git. The
+local `.env` is ignored by both git and the Vercel upload. Two ways to change them:
+
+**A. Vercel dashboard (always works):**
+Project `jeetendra` → **Settings → Environment Variables** → edit the value for
+**Production** → then **Deployments → latest → ⋯ → Redeploy**.
+New values only apply to a *new* deployment, so the redeploy step is required.
+
+**B. From a terminal where the Vercel CLI works** (update `.env` first):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy.ps1 -EnvOnly
+```
+
+This copies the provider settings from `.env` to Vercel without printing any key,
+and forces `LLM_TIMEOUT=6` and `FLASK_DEBUG=0`. Drop `-EnvOnly` to also deploy in the
+same step; add `-DryRun` to see what it would set without changing anything. Git Bash
+users can run `bash deploy.sh --env-only` instead.
+
+> **If `vercel` is "not recognized":** the editor's built-in terminal cannot see the
+> npm install folder, even by full path. Use option A, or a normal PowerShell window
+> where `& "$env:APPDATA\npm\vercel.cmd" --version` works. Log in once with
+> `& "$env:APPDATA\npm\vercel.cmd" login`.
+
+**Current production settings:**
+
+| Variable | Value | Why |
+|---|---|---|
+| `LLM_PROVIDER` | `groq,gemini` | Groq first (~1 s), Gemini takes over on any Groq failure |
+| `GROQ_API_KEY` | Groq key named "portfolio" | primary provider |
+| `GEMINI_API_KEY` | Gemini key for the portfolio | backup provider |
+| `LLM_TIMEOUT` | `6` | Vercel Hobby kills a function at 10 s; the app must give up and fail over inside that window |
+| `FLASK_DEBUG` | `0` | never debug mode in production |
+| `GROQ_MODEL` / `GEMINI_MODEL` | *(unset)* | set only to override the defaults in `core/providers.py` |
+
+Default models (in `core/providers.py`): Groq `qwen/qwen3.8-27b`, Gemini
+`gemini-3.5-flash-lite` with automatic retry on `gemini-3.1-flash-lite`. Both were
+chosen by timing real answers against the 6 s budget, not by version number.
+
+### R3. Where the keys are kept
+
+API keys are stored outside the repository in `D:\personal\keys\`. Never copy them
+into the project folder. `.gitignore` and `.vercelignore` both exclude `.env` and
+`keys/` as a backstop, but the rule is simply: keys don't go in the repo.
+
+### R4. Verify a deployment
+
+In PowerShell, use `Invoke-RestMethod` rather than `curl`. Windows PowerShell 5.1
+strips the quotes out of JSON passed to `curl.exe`, and the site then replies
+`message is required`.
+
+**1. Health, with one real model call** (`probe=1` proves the key works rather than
+merely exists):
+
+```powershell
+(Invoke-RestMethod "https://jeetendra.vercel.app/api/health?probe=1").engine
+```
+
+You want `provider : Groq`, `fallbacks : {Google Gemini}`, `reachable : True`,
+`probe : ok`.
+
+**2. A real question** — `live` should be `True`:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri "https://jeetendra.vercel.app/api/chat" -ContentType "application/json" -Body '{"message":"Is he a fit for an AI Engineer role?"}'
+```
+
+A question the resume doesn't cover (for example about personal life) should come back
+with `live : False` and a polite decline. That is correct behaviour, not a failure.
+
+From Git Bash, `curl -s "https://jeetendra.vercel.app/api/health?probe=1"` works
+as-is.
+
+Finally, open the site in a normal browser and switch between light and dark mode.
+
+### R5. When a model gets retired
+
+Vendors retire models without warning; it has already happened to both providers here.
+
+- **Symptom:** answers come from `"Resume index (no model)"`, and the health probe shows
+  `HTTP 404` with "no longer available" or "model not found".
+- **Fix, fast:** set `GROQ_MODEL` or `GEMINI_MODEL` on Vercel to a current model (§R2),
+  then redeploy.
+- **Fix, properly:** update `default_model` in `core/providers.py`, time a real answer
+  locally with `LLM_TIMEOUT=6`, then commit and push.
+- **Pick by speed, not by version number:** on Vercel's free plan a 9-second answer is a
+  timeout, so a newer, larger model can be strictly worse than a lighter one.
+
+### R6. Roll back
+
+- **Vercel dashboard:** Deployments → the last good deployment → ⋯ → **Promote to Production**.
+  Instant, no rebuild.
+- **Git:** `git revert HEAD` then `git push origin main`. Deploys the previous code.
+
 ---
 
 ## 0. What "free" actually means here
@@ -64,13 +217,14 @@ You want:
     "reachable": true,
     "probe": "ok",
     "provider": "Groq",
-    "model": "llama-3.3-70b-versatile",
-    "fallbacks": []
+    "model": "qwen/qwen3.8-27b",
+    "fallbacks": ["Google Gemini"]
   }
 }
 ```
 
-(`fallbacks` lists any additional providers in the chain — empty if you set only one key.)
+(`fallbacks` lists any additional providers in the chain — empty if you set only one key.
+Model names change as vendors retire them; see runbook §R5.)
 
 If `provider` says `"Resume index (no model)"`, the key isn't being read — fix that now,
 not after deploying.
@@ -78,8 +232,7 @@ not after deploying.
 ### 1.3 Final content pass
 
 - [ ] `data/profile.py` — everything accurate? It's the single source of truth.
-- [ ] `static/files/…Resume.pdf` — current version?
-- [ ] Add your GitHub URL to `PROFILE["github"]` (currently empty).
+- [ ] Regenerate the resume PDF from it: `python build_resume.py` (must report 1 page).
 - [ ] **Run the retrieval eval — it must be 36/36 before you ship:**
 
   ```bash
@@ -287,20 +440,9 @@ CHAT_RATE_LIMIT=10
 
 ## 7. Updating the site after launch
 
-```bash
-# edit data/profile.py — it drives pages, retrieval and the system prompt
-git add .
-git commit -m "Update experience"
-git push
-```
-
-Vercel and Render both auto-deploy on push to `main`.
-
-**Before every push, one check:**
-
-```bash
-python eval_retrieval.py    # must be 36/36; exits non-zero on failure
-```
+Follow **runbook §R1** at the top of this document: edit, run the eval, regenerate
+the resume if `profile.py` changed, push to `main`. Vercel and Render both
+auto-deploy on push.
 
 The chunk count and eval score shown in the About section are **computed at
 startup** from the running index (`_measured_about()` in `app.py`), so they can't
@@ -328,6 +470,12 @@ hand-written prose — keep it honest if you change how the system works.
 | `/resume` returns 404 | PDF not committed | `git add -f static/files/*.pdf` |
 | Photo missing | image not committed | `git ls-files static/img/` |
 | Build fails on `anthropic` | optional dep uncommented | Leave it commented unless using Claude |
+| Probe shows `HTTP 404` "no longer available" | the vendor retired the model | Runbook §R5: set `GROQ_MODEL` / `GEMINI_MODEL`, or update `core/providers.py` |
+| Probe shows `HTTP 401` "Invalid API Key" | key deleted or mistyped | Create a new key, update it on Vercel (§R2), redeploy |
+| Intermittent `HTTP 503` "high demand" | provider over capacity | Keep two providers in `LLM_PROVIDER`; Gemini already retries on a second model |
+| Probe passes but real answers fall back | answer slower than `LLM_TIMEOUT` | Time a real answer; switch to a faster model (a short "ok" probe hides this) |
+| `vercel` is not recognized | editor terminal can't see npm folder | Deploy by `git push`; change settings in the dashboard (§R2) |
+| `deploy.ps1` stops on Vercel's own progress text | Windows PowerShell 5.1 + `Stop` preference | Fixed in the script; judge success by exit code, not stderr |
 
 ---
 
@@ -342,7 +490,7 @@ hand-written prose — keep it honest if you change how the system works.
 ## 10. After it's live
 
 - [ ] Add the URL to your LinkedIn headline and résumé header
-- [ ] Regenerate the resume PDF so it links to the live site
+- [x] Resume PDF is generated from `profile.py` and already links to the live site
 - [ ] Ask a friend to try to break the assistant, then tune `_SYNONYMS` in `core/rag.py`
 - [ ] Pin the GitHub repo on your profile
 

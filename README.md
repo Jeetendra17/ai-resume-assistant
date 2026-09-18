@@ -87,7 +87,7 @@ Pin or reorder explicitly:
 ```bash
 LLM_PROVIDER=groq                  # only Groq
 LLM_PROVIDER=gemini,groq           # Gemini first, Groq as backup
-GROQ_MODEL=llama-3.3-70b-versatile # override any provider's model
+GROQ_MODEL=qwen/qwen3.8-27b        # override any provider's model
 ```
 
 > Note: a Claude Pro / ChatGPT Plus subscription is **not** API access — those are
@@ -97,8 +97,16 @@ GROQ_MODEL=llama-3.3-70b-versatile # override any provider's model
 
 ## Deploy free
 
-> **Full step-by-step guide with verification, guardrails and troubleshooting:
-> [DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md).** The summary below is the short version.
+**How the live site deploys today:** it is on Vercel (project `jeetendra`), connected to
+this repo, so **every push to `main` deploys to production**. Before pushing, run
+`python eval_retrieval.py` (must be 36/36) and, if `data/profile.py` changed,
+`python build_resume.py`. Keys and model settings are Vercel environment variables.
+The step-by-step runbook, including changing keys, verifying and rolling back, is at the
+top of [DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md).
+
+> **Full guide with verification, guardrails and troubleshooting:
+> [DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md).** The options below are for setting it up
+> somewhere new.
 
 ### Option A — Render (recommended: real Flask, zero code changes)
 
@@ -172,9 +180,12 @@ portfolio/
 │   ├── profile.py         ← single source of truth (content, About, build log)
 │   └── knowledge.py       Profile → retrieval chunks
 ├── eval_retrieval.py      36-case retrieval eval; exits non-zero on failure
+├── build_resume.py        profile.py → one-page resume PDF (keeps site and PDF in sync)
+├── interview/             ~100-page interview Q&A corpus the assistant is built on
 ├── templates/index.html
 ├── static/{css,js,img,files}
-├── DEPLOYMENT_PLAN.md     Free hosting, step by step
+├── DEPLOYMENT_PLAN.md     Runbook for deploying changes, then first-time setup
+├── deploy.ps1 · deploy.sh Push provider settings from .env to Vercel (keys never echoed)
 └── Procfile · render.yaml · Dockerfile · vercel.json · .vercelignore
 ```
 
