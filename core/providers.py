@@ -11,6 +11,7 @@ answers from the local resume index, so a deployment never breaks.
 
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 
@@ -64,11 +65,18 @@ class Provider:
         raise NotImplementedError
 
 
+_THINK_BLOCK = re.compile(r"<think>.*?</think>\s*", re.S)
+
+
 class OpenAICompatible(Provider):
     """Shared adapter for every `/chat/completions` API."""
 
     base_url = ""
     extra_headers = {}
+
+    def extra_payload(self):
+        """Provider-specific request fields, merged into the payload."""
+        return {}
 
     def complete(self, system, messages):
         payload = {
@@ -76,13 +84,17 @@ class OpenAICompatible(Provider):
             "messages": [{"role": "system", "content": system}] + messages,
             "max_tokens": int(os.environ.get("ASSISTANT_MAX_TOKENS", "800")),
             "temperature": 0.3,
+            **self.extra_payload(),
         }
         headers = {"Authorization": f"Bearer {self.api_key}", **self.extra_headers}
         data = _post_json(f"{self.base_url}/chat/completions", payload, headers)
         try:
-            return data["choices"][0]["message"]["content"].strip()
+            content = data["choices"][0]["message"]["content"] or ""
         except (KeyError, IndexError, AttributeError) as exc:
             raise ProviderError(f"unexpected response shape: {str(data)[:200]}") from exc
+        # Reasoning models can inline their thinking in the answer when the
+        # provider ignores the request to hide it. A visitor must never see it.
+        return _THINK_BLOCK.sub("", content).strip()
 
 
 class Groq(OpenAICompatible):
@@ -91,8 +103,23 @@ class Groq(OpenAICompatible):
     free = True
     env_key = "GROQ_API_KEY"
     base_url = "https://api.groq.com/openai/v1"
-    default_model = "llama-3.3-70b-versatile"
+    # llama-3.3-70b-versatile, the previous default, was retired and every call
+    # 404'd into the extractive fallback. Measured on the real grounded question,
+    # Qwen with reasoning off answered in ~0.8s three runs out of three; gpt-oss-20b
+    # ~1s; gpt-oss-120b hit a 429 by the third call.
+    default_model = "qwen/qwen3.8-27b"
     signup = "https://console.groq.com/keys"
+
+    def extra_payload(self):
+        # Both current families think before answering unless told not to, and
+        # a grounded answer from retrieved context gains nothing from it -- it
+        # only adds latency against a 6s serverless budget. The two families
+        # spell "off" differently, and the wrong spelling is a 400.
+        if self.model.startswith("qwen/"):
+            return {"reasoning_effort": "none"}
+        if self.model.startswith("openai/gpt-oss"):
+            return {"reasoning_effort": "low", "include_reasoning": False}
+        return {}
 
 
 class OpenRouter(OpenAICompatible):
@@ -178,10 +205,31 @@ class Gemini(Provider):
     label = "Google Gemini"
     free = True
     env_key = "GEMINI_API_KEY"
-    default_model = "gemini-2.0-flash"
+    # Chosen by measurement, not by version number. On the real grounded question
+    # the newest flash model took 7-9s and returned 503 "high demand" on repeat
+    # calls; flash-lite answered in about 2s, three runs out of three. On Vercel's
+    # free tier a 9s answer is a timeout, so the bigger model was strictly worse
+    # here. (gemini-2.0-flash, the previous default, has been retired.)
+    default_model = "gemini-3.5-flash-lite"
+    # A second model on separate capacity. Gemini is often the only configured
+    # provider, and without this a single 503 drops the visitor to the extractive
+    # fallback even though a sibling model would have answered.
+    fallback_model = "gemini-3.1-flash-lite"
     signup = "https://aistudio.google.com/apikey"
 
-    def complete(self, system, messages):
+    _RETRYABLE = ("HTTP 404", "HTTP 429", "HTTP 500", "HTTP 503")
+
+    @staticmethod
+    def _thinking(model):
+        # Thinking is on by default for current flash models and is most of their
+        # latency; a grounded answer from retrieved context gains nothing from it.
+        # Gemini 3 takes a level, 2.5 takes a token budget -- sending the wrong one
+        # is a 400.
+        if model.startswith("gemini-2"):
+            return {"thinkingBudget": 0}
+        return {"thinkingLevel": "minimal"}
+
+    def _generate(self, model, system, messages):
         contents = [
             {
                 "role": "model" if m["role"] == "assistant" else "user",
@@ -195,18 +243,25 @@ class Gemini(Provider):
             "generationConfig": {
                 "temperature": 0.3,
                 "maxOutputTokens": int(os.environ.get("ASSISTANT_MAX_TOKENS", "800")),
+                "thinkingConfig": self._thinking(model),
             },
         }
-        url = (
-            f"https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{self.model}:generateContent"
-        )
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
         data = _post_json(url, payload, {"x-goog-api-key": self.api_key})
         try:
             parts = data["candidates"][0]["content"]["parts"]
-            return "".join(p.get("text", "") for p in parts).strip()
+            return "".join(p.get("text", "") for p in parts if not p.get("thought")).strip()
         except (KeyError, IndexError) as exc:
             raise ProviderError(f"unexpected response shape: {str(data)[:200]}") from exc
+
+    def complete(self, system, messages):
+        try:
+            return self._generate(self.model, system, messages)
+        except ProviderError as exc:
+            backup = os.environ.get("GEMINI_FALLBACK_MODEL", self.fallback_model)
+            if not backup or backup == self.model or not str(exc).startswith(self._RETRYABLE):
+                raise
+            return self._generate(backup, system, messages)
 
 
 class Anthropic(Provider):

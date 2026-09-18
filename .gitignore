@@ -7,3 +7,9 @@ venv/
 .DS_Store
 
 .vercel
+
+# Local credentials store -- never commit or upload.
+keys/
+
+# Built from interview/corpus/source/*.md -- regenerate, don't commit.
+interview/corpus/questions.json
