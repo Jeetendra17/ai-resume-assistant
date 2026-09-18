@@ -114,6 +114,12 @@ def _tokenize(text):
     ]
 
 
+# Public name for other indexes. The interview corpus index must tokenize exactly
+# as this one does -- same stemming, stopwords and phrase normalisation -- or the
+# two rankings it fuses would disagree about what a word is.
+tokenize = _tokenize
+
+
 def _weighted_terms(query):
     """Return {term: weight}; typed terms weigh 1.0, expansions much less."""
     terms = {}

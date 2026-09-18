@@ -1,0 +1,53 @@
+{
+ "questions": {
+  "reworded": 52,
+  "exact_term": 14,
+  "must_decline": 12
+ },
+ "recall_at_3": {
+  "bm25": {
+   "reworded": 0.462,
+   "exact_term": 0.929,
+   "combined": 0.561
+  },
+  "lsa": {
+   "reworded": 0.404,
+   "exact_term": 0.929,
+   "combined": 0.515
+  },
+  "dense": {
+   "reworded": 0.885,
+   "exact_term": 0.929,
+   "combined": 0.894
+  },
+  "bm25+lsa": {
+   "reworded": 0.5,
+   "exact_term": 0.929,
+   "combined": 0.591
+  },
+  "bm25+dense": {
+   "reworded": 0.865,
+   "exact_term": 0.929,
+   "combined": 0.879
+  },
+  "bm25+dense+lsa": {
+   "reworded": 0.769,
+   "exact_term": 0.929,
+   "combined": 0.803
+  },
+  "live": {
+   "reworded": 0.885,
+   "exact_term": 0.929,
+   "combined": 0.894
+  }
+ },
+ "live_config": {
+  "dense": 1.0,
+  "bm25": 0.25
+ },
+ "answer_decline": {
+  "dense": 0.859,
+  "fallback": 0.922
+ },
+ "passed": true
+}

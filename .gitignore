@@ -13,3 +13,6 @@ keys/
 
 # Built from interview/corpus/source/*.md -- regenerate, don't commit.
 interview/corpus/questions.json
+
+# Query-embedding cache written by the interview retrieval eval.
+interview/retrieval/.embed_cache.json
