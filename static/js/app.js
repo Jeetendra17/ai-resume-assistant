@@ -15,11 +15,59 @@
   const sendBtn = $('#send');
   const recentList = $('#recentList');
 
+  /* ── theme ───────────────────────────────────────────────────────────────
+     The attribute is already set by the inline script in <head>; this only
+     handles switching it. Reads and writes are guarded because localStorage
+     throws outright in a private window with site data blocked, and a theme
+     toggle is not worth taking the rest of the page down for.               */
+
+  const root = document.documentElement;
+  const themeBtn = $('#themeToggle');
+  const themeMeta = $('#themeColor');
+  const THEME_COLOR = { light: '#e9edf4', dark: '#080b11' };
+
+  /* `persist` is off for the initial sync. Writing on load would record a
+     preference the visitor never expressed, which then pins them to whatever
+     their OS happened to be on their first visit. */
+  function applyTheme(theme, persist) {
+    root.setAttribute('data-theme', theme);
+    if (themeMeta) themeMeta.setAttribute('content', THEME_COLOR[theme]);
+    if (themeBtn) {
+      themeBtn.setAttribute(
+        'aria-label',
+        theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+      );
+    }
+    if (persist) {
+      try { localStorage.setItem('theme', theme); } catch (e) { /* private mode */ }
+    }
+  }
+
+  applyTheme(root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light', false);
+
+  if (themeBtn) {
+    themeBtn.addEventListener('click', () => {
+      applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true);
+    });
+  }
+
+  // Follow the OS while the visitor has not expressed a preference of their own.
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    let stored = null;
+    try { stored = localStorage.getItem('theme'); } catch (err) { /* private mode */ }
+    if (!stored) applyTheme(e.matches ? 'dark' : 'light', false);
+  });
+
   /* ── section routing ─────────────────────────────────────────────────── */
 
   function show(id) {
     $$('.section').forEach((s) => s.classList.toggle('active', s.id === `s-${id}`));
-    $$('.nav-item').forEach((b) => b.classList.toggle('active', b.dataset.section === id));
+    $$('.nav-item').forEach((b) => {
+      const on = b.dataset.section === id;
+      b.classList.toggle('active', on);
+      if (on) b.setAttribute('aria-current', 'page');
+      else b.removeAttribute('aria-current');
+    });
     scroll.scrollTop = 0;
     if (history.replaceState) history.replaceState(null, '', `#${id}`);
     closeSidebar();
@@ -119,11 +167,33 @@
     $$('[data-engine-dot]').forEach((el) => { el.classList.toggle('off', !live); });
   }
 
+  /* The suggested questions used to sit on the overview as a six-card grid,
+     which put a third "ask something" affordance on a page that already had
+     the hero card and the composer. They belong here: visible once you are
+     actually in the conversation, and gone as soon as it has started. */
+  function addSuggestions() {
+    const rest = (window.PORTFOLIO.prompts || []).slice(3);
+    if (!rest.length) return;
+
+    const row = document.createElement('div');
+    row.className = 'suggest-row';
+    rest.forEach((q) => {
+      const chip = document.createElement('button');
+      chip.className = 'suggest';
+      chip.type = 'button';
+      chip.textContent = q;
+      chip.addEventListener('click', () => ask(q));
+      row.appendChild(chip);
+    });
+    messages.appendChild(row);
+  }
+
   function openPanel() {
     if (panel.hidden) {
       panel.hidden = false;
       if (!messages.childElementCount) {
         addBubble('bot', `Hi — ask me anything about ${window.PORTFOLIO.firstName}'s experience, projects or fit for a role. I answer from his resume only.`);
+        addSuggestions();
       }
     }
   }
@@ -197,6 +267,9 @@
     input.value = '';
     openPanel();
 
+    const suggestions = messages.querySelector('.suggest-row');
+    if (suggestions) suggestions.remove();
+
     addBubble('me', renderMarkdown(text));
     rememberQuestion(text);
     const typing = addTyping();
@@ -241,7 +314,11 @@
   const options = $$('.askcard-option');
   options.forEach((opt) => {
     opt.addEventListener('click', () => {
-      options.forEach((o) => o.classList.toggle('selected', o === opt));
+      options.forEach((o) => {
+        const on = o === opt;
+        o.classList.toggle('selected', on);
+        o.setAttribute('aria-checked', String(on));
+      });
     });
   });
 

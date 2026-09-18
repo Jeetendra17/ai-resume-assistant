@@ -12,9 +12,27 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%232f6bff'/><text y='68' x='50' text-anchor='middle' font-size='52' font-family='sans-serif' font-weight='700' fill='white'>J</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%232f57e8'/><text y='68' x='50' text-anchor='middle' font-size='52' font-family='sans-serif' font-weight='700' fill='white'>J</text></svg>">
+<meta name="theme-color" content="#e9edf4" id="themeColor">
+
+<script>
+/* Resolve the theme before first paint. Running this in <head> (rather than in
+   app.js at the end of <body>) is what keeps a dark-mode visitor from seeing a
+   white flash on every page load. Stored choice wins over the OS preference;
+   a storage exception in a locked-down browser must not block rendering. */
+(function () {
+  var stored = null;
+  try { stored = localStorage.getItem('theme'); } catch (e) { /* private mode */ }
+  var theme = (stored === 'light' || stored === 'dark')
+    ? stored
+    : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
 </head>
 <body>
+
+<a class="skip-link" href="#s-home">Skip to content</a>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
@@ -33,6 +51,8 @@
     <g id="i-close"><path d="m5.5 5.5 9 9M14.5 5.5l-9 9"/></g>
     <g id="i-menu"><path d="M3 6h14M3 10h14M3 14h9"/></g>
     <g id="i-user"><circle cx="10" cy="7" r="3.2"/><path d="M4 16.5a6 6 0 0 1 12 0"/></g>
+    <g id="i-sun"><circle cx="10" cy="10" r="3.6"/><path d="M10 1.8v2.1M10 16.1v2.1M18.2 10h-2.1M3.9 10H1.8M15.8 4.2l-1.5 1.5M5.7 14.3l-1.5 1.5M15.8 15.8l-1.5-1.5M5.7 5.7 4.2 4.2"/></g>
+    <g id="i-moon"><path d="M16.5 11.8A7 7 0 0 1 8.2 3.5a7 7 0 1 0 8.3 8.3z"/></g>
   </defs>
 </svg>
 
@@ -50,16 +70,17 @@
           <small>{{ profile.role }}</small>
         </span>
       </div>
-      <button class="icon-btn side-toggle" id="sidebarClose" aria-label="Close menu">
-        <svg class="ic" viewBox="0 0 20 20"><use href="#i-close"/></svg>
+      <button class="icon-btn side-toggle" id="sidebarClose" aria-label="Close menu" aria-controls="sidebar">
+        <svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-close"/></svg>
       </button>
     </div>
 
-    <nav class="nav" id="nav">
+    <nav class="nav" id="nav" aria-label="Sections">
       {% for item in nav %}
-      <button class="nav-item{% if loop.first %} active{% endif %}" data-section="{{ item.id }}">
+      <button class="nav-item{% if loop.first %} active{% endif %}" data-section="{{ item.id }}"
+              aria-controls="s-{{ item.id }}"{% if loop.first %} aria-current="page"{% endif %}>
         <span>{{ item.label }}</span>
-        <svg class="ic" viewBox="0 0 20 20"><use href="#i-{{ item.icon }}"/></svg>
+        <svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-{{ item.icon }}"/></svg>
       </button>
       {% endfor %}
     </nav>
@@ -96,8 +117,8 @@
   <!-- ───────────────────────── main ───────────────────────── -->
   <main class="main">
     <header class="topbar">
-      <button class="icon-btn menu-btn" id="sidebarOpen" aria-label="Open menu">
-        <svg class="ic" viewBox="0 0 20 20"><use href="#i-menu"/></svg>
+      <button class="icon-btn menu-btn" id="sidebarOpen" aria-label="Open menu" aria-controls="sidebar">
+        <svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-menu"/></svg>
       </button>
       <div class="chips">
         <span class="chip chip-accent">AI Engineering</span>
@@ -106,9 +127,13 @@
         <span class="chip hide-sm">AWS</span>
       </div>
       <div class="topbar-right">
-        <span class="chip chip-soft">{{ profile.location.split(',')[0] }}</span>
+        <span class="chip chip-soft hide-sm">{{ profile.location.split(',')[0] }}</span>
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="Switch to dark theme">
+          <svg class="ic ic-sun" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-sun"/></svg>
+          <svg class="ic ic-moon" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-moon"/></svg>
+        </button>
         <a class="btn btn-ghost" href="{{ url_for('resume') }}" target="_blank" rel="noopener">
-          <svg class="ic" viewBox="0 0 20 20"><use href="#i-download"/></svg> Resume
+          <svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-download"/></svg> Resume
         </a>
       </div>
     </header>
@@ -161,17 +186,18 @@
               <h3>Interview me in 30 seconds</h3>
               <p class="askcard-sub">Grounded in my resume — it can't make things up</p>
 
-              <label class="askcard-label">Pick a question</label>
-              <div class="askcard-options">
+              <span class="askcard-label" id="askcardLabel">Pick a question</span>
+              <div class="askcard-options" role="radiogroup" aria-labelledby="askcardLabel">
                 {% for q in prompts[:3] %}
-                <button class="askcard-option{% if loop.first %} selected{% endif %}" data-q="{{ q }}">
+                <button class="askcard-option{% if loop.first %} selected{% endif %}" data-q="{{ q }}"
+                        role="radio" aria-checked="{{ 'true' if loop.first else 'false' }}">
                   {{ q }}
                 </button>
                 {% endfor %}
               </div>
 
-              <button class="btn btn-gradient btn-block" id="askcardGo">
-                <svg class="ic" viewBox="0 0 20 20"><use href="#i-send"/></svg> Ask
+              <button class="btn btn-primary btn-block" id="askcardGo">
+                <svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-send"/></svg> Ask
               </button>
 
               <p class="askcard-foot">
@@ -182,57 +208,38 @@
           </aside>
         </div>
 
-        <!-- what I actually do -->
-        <div class="grid three focus-grid">
-          {% for f in focus %}
-          <article class="card focuscard t-{{ f.tone }}">
-            <span class="focus-icon"><svg class="ic" viewBox="0 0 20 20"><use href="#i-{{ f.icon }}"/></svg></span>
-            <h3 class="card-title">{{ f.title }}</h3>
-            <p class="lede">{{ f.text }}</p>
-            <div class="stack">
-              {% for t in f.tools %}<span class="pill">{{ t }}</span>{% endfor %}
-            </div>
+        {# The overview used to carry six stacked blocks and three separate ways
+           to start a conversation (hero button, prompt grid, composer). It read
+           as noise. What is left is the recruiter's scan path and nothing else:
+           who he is, the numbers, what he does, the work. Detail lives one
+           click away in its own section. #}
+
+        <div class="block-head">
+          <h3>By the numbers</h3>
+          <span class="muted small">Every figure is on the resume</span>
+        </div>
+        <div class="grid metrics">
+          {% for m in metrics %}
+          <article class="card metric">
+            <p class="metric-value">{{ m.value }}</p>
+            <p class="metric-label">{{ m.label }}</p>
+            <p class="metric-trend">{{ m.trend }}</p>
           </article>
           {% endfor %}
         </div>
 
         <div class="block-head">
-          <h3>By the numbers</h3>
-          <span class="muted small">Every figure below is on the resume</span>
+          <h3>What I actually do</h3>
+          <button class="btn btn-ghost btn-sm jump" data-section="skills">Full stack &rarr;</button>
         </div>
-        <div class="grid metrics">
-          {% for m in metrics %}
-          <article class="card metric t-{{ m.tone }}">
-            <p class="metric-label">{{ m.label }}</p>
-            <p class="metric-value">{{ m.value }}</p>
-            <p class="metric-detail">{{ m.detail }}</p>
-            <span class="tag">{{ m.trend }}</span>
+        <div class="grid three focus-grid">
+          {% for f in focus %}
+          <article class="card focuscard t-{{ f.tone }}">
+            <span class="focus-icon"><svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-{{ f.icon }}"/></svg></span>
+            <h3 class="card-title">{{ f.title }}</h3>
+            <p class="lede">{{ f.text }}</p>
           </article>
           {% endfor %}
-        </div>
-
-        <div class="grid two">
-          <article class="card note">
-            <p class="card-eyebrow">
-              <svg class="ic" viewBox="0 0 20 20"><use href="#i-spark"/></svg> The short version
-            </p>
-            <p class="lede">{{ profile.summary }}</p>
-            <p class="lede muted">{{ profile.pitch }}</p>
-          </article>
-
-          <article class="card">
-            <p class="card-eyebrow">
-              <svg class="ic" viewBox="0 0 20 20"><use href="#i-briefcase"/></svg> Currently
-            </p>
-            {% set job = experience[0] %}
-            <h3 class="card-title">{{ job.role }}</h3>
-            <p class="muted small">{{ job.company }} · {{ job.period }}</p>
-            <p class="lede">{{ job.summary }}</p>
-            <div class="stack">
-              {% for s in job.stack %}<span class="pill">{{ s }}</span>{% endfor %}
-            </div>
-            <button class="btn btn-ghost btn-sm jump" data-section="experience">See full history &rarr;</button>
-          </article>
         </div>
 
         <div class="block-head">
@@ -252,22 +259,6 @@
               {% for s in p.stack %}<span class="pill">{{ s }}</span>{% endfor %}
             </div>
           </article>
-          {% endfor %}
-        </div>
-
-        <div class="block-head">
-          <h3>Ask the assistant</h3>
-          <span class="engine-badge" title="Answers are grounded in the resume via local retrieval">
-            <span class="dot{% if not engine.live %} off{% endif %}" data-engine-dot></span>
-            <span data-engine-name>{{ engine.provider }}</span>
-          </span>
-        </div>
-        <div class="grid prompts">
-          {% for q in prompts %}
-          <button class="card prompt ask" data-q="{{ q }}">
-            <svg class="ic" viewBox="0 0 20 20"><use href="#i-spark"/></svg>
-            <span>{{ q }}</span>
-          </button>
           {% endfor %}
         </div>
       </section>
@@ -586,18 +577,19 @@
             </span>
           </div>
           <button class="icon-btn" id="chatClose" aria-label="Close chat">
-            <svg class="ic" viewBox="0 0 20 20"><use href="#i-close"/></svg>
+            <svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-close"/></svg>
           </button>
         </div>
-        <div class="messages" id="messages"></div>
+        <div class="messages" id="messages" role="log" aria-live="polite" aria-label="Conversation"></div>
       </div>
 
       <form class="composer" id="composer" autocomplete="off">
-        <span class="composer-icon"><svg class="ic" viewBox="0 0 20 20"><use href="#i-spark"/></svg></span>
+        <span class="composer-icon" aria-hidden="true"><svg class="ic" viewBox="0 0 20 20"><use href="#i-spark"/></svg></span>
+        <label class="sr-only" for="input">Ask about {{ profile.name.split(' ')[0] }}</label>
         <input id="input" type="text" maxlength="1000"
                placeholder="Ask anything about {{ profile.name.split(' ')[0] }}'s experience, projects or fit…">
         <button class="send" id="send" type="submit" aria-label="Send">
-          <svg class="ic" viewBox="0 0 20 20"><use href="#i-send"/></svg>
+          <svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-send"/></svg>
         </button>
       </form>
       <p class="composer-note">Grounded in the resume. Answers may be imperfect — verify anything critical.</p>
