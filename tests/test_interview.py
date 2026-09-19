@@ -175,7 +175,15 @@ class AgentTests(unittest.TestCase):
                 self.assertEqual(len(fake.calls), 1)                   # no regeneration
                 self.assertEqual(len(out["citations"]), 2)
 
+    def _with_budget(self, seconds):
+        from interview.graph import agent
+
+        saved = agent.REGENERATE_WITHIN_S
+        agent.REGENERATE_WITHIN_S = seconds
+        self.addCleanup(setattr, agent, "REGENERATE_WITHIN_S", saved)
+
     def test_invented_number_is_regenerated_then_falls_back(self):
+        self._with_budget(60)                                          # timing out of the picture
         for eng in self.ENGINES:
             with self.subTest(engine=eng):
                 out, fake = self._run(eng, ["He wrote 9999 test scripts [1]."],
@@ -185,6 +193,17 @@ class AgentTests(unittest.TestCase):
                 self.assertEqual(nodes[-1], "fallback")
                 self.assertNotIn("9999", out["answer"])
                 self.assertIn("previous draft", fake.calls[-1][0])     # strict retry prompt
+
+    def test_no_regeneration_once_the_time_budget_is_spent(self):
+        self._with_budget(0)
+        for eng in self.ENGINES:
+            with self.subTest(engine=eng):
+                out, fake = self._run(eng, ["He wrote 9999 test scripts [1]."],
+                                      "tell me about his automated test scripts")
+                nodes = [s["node"] for s in out["trace"]]
+                self.assertEqual(len(fake.calls), 1)                   # quoted, not retried
+                self.assertEqual(nodes[-1], "fallback")
+                self.assertEqual(out["trace"][-2].get("note"), "no time left to regenerate")
 
     def test_empty_question_refuses_without_a_model_call(self):
         for eng in self.ENGINES:

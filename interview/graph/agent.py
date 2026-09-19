@@ -12,7 +12,9 @@ edges, and one of them loops -- which a straight pipeline cannot express.
 
 Every loop is bounded. At most one query rewrite and one regeneration: a system
 that keeps trying is a system that eventually produces something whether or not it
-should. The recursion limit is a second guard behind those counters.
+should. The recursion limit is a second guard behind those counters, and a
+regeneration only starts while the request can still finish inside the serverless
+time limit (REGENERATE_WITHIN_S).
 
 The rewrite step is deliberately narrow. It exists for follow-ups -- "how long did
 that take?" retrieves nothing on its own, but does once it is read with the previous
@@ -43,6 +45,10 @@ MAX_REWRITES = 1
 MAX_REGENERATIONS = 1
 RECURSION_LIMIT = 14
 MAX_QUESTION_CHARS = 1000
+# A regeneration is another model call of up to LLM_TIMEOUT (6 s live). On Vercel's
+# 10-second function limit, only start one while it can still finish; later than
+# this, quote the source instead of risking a timed-out request.
+REGENERATE_WITHIN_S = 3.5
 
 _NUMBER = re.compile(r"\d[\d,]*(?:\.\d+)?")
 _LIST_NUMBER = re.compile(r"(?m)^\s*\d{1,2}[.)]\s")
@@ -51,6 +57,7 @@ _LIST_NUMBER = re.compile(r"(?m)^\s*\d{1,2}[.)]\s")
 class AgentState(TypedDict, total=False):
     question: str
     history: list
+    started: float
     query: str
     rewrites: int
     regenerations: int
@@ -153,14 +160,17 @@ def verify(state: AgentState) -> dict:
     if state["live"] and not state["declined"]:
         issues = check(state["answer"], state["docs"], state["question"],
                        state.get("invalid_citations") or ())
+    retry_left = state["regenerations"] < MAX_REGENERATIONS
+    in_time = time.perf_counter() - state.get("started", t) < REGENERATE_WITHIN_S
     if not issues:
         decision = "done"
-    elif state["regenerations"] < MAX_REGENERATIONS:
+    elif retry_left and in_time:
         decision = "regenerate"
     else:
         decision = "fallback"
+    detail = {"note": "no time left to regenerate"} if issues and retry_left and not in_time else {}
     update = {"issues": issues, "decision": decision,
-              "trace": _step("verify", t, issues=issues, decision=decision)}
+              "trace": _step("verify", t, issues=issues, decision=decision, **detail)}
     if decision == "regenerate":
         update["regenerations"] = state["regenerations"] + 1
     return update
@@ -174,7 +184,7 @@ def refuse(state: AgentState) -> dict:
 
 
 def fallback(state: AgentState) -> dict:
-    """The answer failed verification twice: return the top entry verbatim instead."""
+    """The answer failed verification with no retry left: quote the top entry instead."""
     t = time.perf_counter()
     top = state["docs"][0]
     answer = (f"{concise(top['answer'])}\n\n*(Quoted directly from his record: \"{top['question']}\". "
@@ -227,7 +237,8 @@ def run(question: str, history: list | None = None) -> dict:
         _compiled = build()
     graph, graph_engine, import_ms = _compiled
 
-    state = graph.invoke({"question": question, "history": history or [], "trace": []},
+    state = graph.invoke({"question": question, "history": history or [], "started": started,
+                          "trace": []},
                          {"recursion_limit": RECURSION_LIMIT})
 
     outcome = state.get("outcome") or (
