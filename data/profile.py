@@ -339,23 +339,24 @@ ABOUT = {
     "build_title": "About this site",
     "lede": (
         "Most portfolios claim AI experience. This one runs it. The chat box on this page is a "
-        "retrieval-augmented assistant over my own resume — and the engineering decisions behind "
-        "it are the real portfolio piece, so here they are in full."
+        "LangGraph agent over about a hundred pages of questions and answers about my record, with "
+        "measured retrieval, versioned prompts and a check on every answer — and the engineering "
+        "decisions behind it are the real portfolio piece, so here they are in full."
     ),
-    # Measured against the running app — re-run the timing snippet in the README
-    # if the corpus changes, rather than letting these drift.
+    # Values in these stats are replaced at startup by `_measured_about()` in app.py
+    # from the running index and the latest evaluation results, so they cannot drift.
     "stats": [
+        {"value": "–", "label": "interview retrieval recall@3", "detail": "reworded questions, measured"},
+        {"value": "–", "label": "interview questions", "detail": "written, grounded, reviewed"},
         {"value": "36/36", "label": "retrieval eval passing", "detail": "29 must-match + 7 must-decline questions"},
-        {"value": "0.04 ms", "label": "retrieval per query", "detail": "in-process BM25, measured over 2,900 runs"},
         {"value": "9", "label": "interchangeable providers", "detail": "7 with free tiers"},
-        {"value": "28", "label": "indexed resume chunks", "detail": "no vector database"},
     ],
     "flow": [
-        {"step": "1", "name": "Question", "text": "Recruiter asks in plain language — \"is he a fit?\", not resume keywords."},
-        {"step": "2", "name": "Retrieve", "text": "BM25 scores every resume chunk. A synonym layer maps hiring language onto resume vocabulary."},
-        {"step": "3", "name": "Ground", "text": "Top chunks become a labelled context block. The system prompt forbids answering outside it."},
-        {"step": "4", "name": "Generate", "text": "First healthy provider in the chain answers. If all fail, the retrieved text is returned directly."},
-        {"step": "5", "name": "Cite", "text": "The response carries the chunk titles it drew from, so claims are checkable."},
+        {"step": "1", "name": "Route", "text": "Empty or oversized questions are turned away before anything runs."},
+        {"step": "2", "name": "Retrieve", "text": "Embeddings + BM25 over the interview corpus, fused by rank. If the embedding call misses its deadline, BM25 + a local index answer instead."},
+        {"step": "3", "name": "Grade", "text": "Not enough evidence? A follow-up is re-read with the previous question once; otherwise decline without a model call."},
+        {"step": "4", "name": "Generate", "text": "A LangChain chain sends the retrieved answers and a versioned prompt to the first healthy provider. It declines anything outside the record."},
+        {"step": "5", "name": "Verify", "text": "Numbers must appear in the sources; citations must point at retrieved entries. One retry, then the source is quoted instead."},
     ],
     "decisions": [
         {
@@ -369,6 +370,20 @@ ABOUT = {
                 "similarity — it's that recruiters ask \"can he do X\" while resumes say \"built X\", "
                 "so I added stemming, phrase normalisation and a weighted synonym layer to bridge "
                 "that vocabulary gap. Cheaper and more targeted than reaching for a bigger model."
+            ),
+        },
+        {
+            "title": "Then embeddings, when the corpus grew",
+            "tone": "blue",
+            "call": "Measured the switch instead of assuming it",
+            "why": (
+                "The interview corpus behind the assistant is 163 questions and answers, not thirty "
+                "resume chunks, so I measured again before choosing. On questions reworded the way "
+                "visitors type, keyword search found the right answer in the top three under half the time; "
+                "embeddings about nine times in ten. The textbook move is to fuse both at equal weight, and on this corpus "
+                "that made it slightly worse, because the embedding model already handled exact terms "
+                "as well as keyword search did. So embeddings lead, keyword search votes at a quarter "
+                "weight, and the original index remains the fallback that works with no network."
             ),
         },
         {
@@ -418,7 +433,10 @@ ABOUT = {
                 "Every page, the retrieval corpus and the system prompt all derive from a single "
                 "profile module. It's structurally impossible for the site to say one thing and the "
                 "assistant another — a class of bug I've watched cost real debugging time. Updating "
-                "my experience means editing one file."
+                "my experience means editing one file. One deliberate exception: the interview corpus "
+                "is written by hand, because considered answers can't be generated from a list of "
+                "facts. Every answer in it names the resume facts it rests on and the build rejects "
+                "one that names none — a rule rather than a structural guarantee, and I'd rather say so."
             ),
         },
     ],
@@ -430,11 +448,11 @@ ABOUT = {
         "Per-IP rate limiting keeps a stray script from draining a free tier.",
     ],
     "next": [
-        "Swap in hybrid retrieval (BM25 + embeddings) once the corpus grows past a few hundred chunks — the interface is already in place for it.",
-        "Expand the eval set beyond 29 questions and wire it into CI so a bad retrieval change can't merge.",
-        "Stream tokens to the client instead of waiting for the full response.",
+        "Add a reranker over the retrieved shortlist — the single change most likely to lift the remaining misses.",
+        "Train the LoRA adapter on a GPU and compare it on the held-out split with the retrieved-examples approach the site uses now.",
+        "Wire the evaluations into CI so a bad retrieval or prompt change can't merge, and stream answers to the client.",
     ],
-    "stack": ["Python", "Flask", "BM25 / RAG", "Groq", "Gemini", "Jinja2", "Vanilla JS", "Gunicorn", "Docker"],
+    "stack": ["Python", "Flask", "LangGraph", "LangChain", "Hybrid RAG", "Gemini embeddings", "Groq", "Vanilla JS", "Docker"],
 }
 
 # Build log. Kept deliberately small on the page — a collapsed list under the
@@ -672,6 +690,7 @@ NAV = [
     {"id": "home", "label": "Overview", "icon": "home"},
     {"id": "experience", "label": "Experience", "icon": "briefcase"},
     {"id": "projects", "label": "Projects", "icon": "layers"},
+    {"id": "interview", "label": "Interview Lab", "icon": "graph"},
     {"id": "about", "label": "About", "icon": "user"},
     {"id": "skills", "label": "Skills", "icon": "chip"},
     {"id": "education", "label": "Education", "icon": "cap"},

@@ -2,14 +2,21 @@
 
 **Live: <https://jeetendra.vercel.app>**
 
-A Flask portfolio built as a light dashboard, with a resume-grounded assistant that
-recruiters can question directly.
+A Flask portfolio with light and dark themes, and an assistant that recruiters can
+question directly — a LangGraph agent over a ~100-page corpus of the questions people
+actually ask about me.
 
-- **Retrieval runs locally** (BM25 over resume chunks, no external service, no vector DB bill).
-- **Generation is multi-provider** and free-tier first — Groq, Gemini, Cerebras, OpenRouter,
-  Mistral, Together, Ollama, Anthropic, OpenAI.
-- **It never hard-fails.** With no API key at all the assistant still answers by pulling
-  the matching resume sections verbatim.
+- **RAG over 163 grounded Q&As.** Embeddings + BM25, fused by rank: the right answer is in
+  the top 3 for about nine in ten reworded questions, against under half for keyword search
+  alone (exact figures in the Interview Lab).
+- **LangChain + LangGraph, live.** Route → retrieve → grade → generate → verify, with a
+  trace of every answer shown under the reply.
+- **Prompt engineering by measurement.** Six versioned prompts, scored end to end on 24
+  questions; the live one is picked by a fixed rule, not by eye.
+- **Fine-tuning dataset + LoRA trainer.** 179 chat-format examples, contamination-checked.
+  The trainer is written and dry-run, not yet trained (needs a GPU).
+- **Zero cost, never hard-fails.** Free tiers throughout; every stage has a local
+  fallback, down to answering from the resume with no API key at all.
 
 ---
 
@@ -47,7 +54,48 @@ after it answered a question about hobbies with the career summary — now 36/36
 
 ---
 
-## The assistant
+## The interview assistant
+
+The chat answers from `interview/corpus/source/` — 15 parts, 163 questions a recruiter,
+hiring manager or engineer asks about me, each with the answer the assistant should give
+and the resume facts it rests on. `static/files/Jeetendra_Kumar_Patel_Interview_QA.pdf`
+is the same corpus as a document (109 pages).
+
+```
+question ─▶ route ─▶ retrieve ─▶ grade ─┬─▶ generate ─▶ verify ─┬─▶ answer + citations + trace
+                    (embeddings    │    │   (LangChain chain,     ├─▶ regenerate once
+                     + BM25@0.25)  │    │    versioned prompt,    └─▶ quote the source
+                                   │    │    Groq → Gemini …)
+                                   │    ├─▶ rewrite (follow-ups only, once) ─▶ retrieve
+                                   │    └─▶ refuse (no model call)
+```
+
+| Piece | Where | Rebuild / run |
+|---|---|---|
+| Corpus (Markdown → records, validated) | `interview/corpus/` | `python -m interview.corpus.build` |
+| Index: BM25 + LSA + Gemini embeddings | `interview/index/` | `python -m interview.index.build_index` |
+| Retrieval eval (52 reworded + 14 exact-term + 12 decline) | `interview/retrieval/eval.py` | `python -m interview.retrieval.eval` |
+| Prompt registry + end-to-end prompt eval | `interview/prompting/` | `python -m interview.prompting.evaluate` |
+| LCEL chains | `interview/chains/pipeline.py` | — |
+| LangGraph agent | `interview/graph/agent.py` | — |
+| Fine-tuning dataset | `interview/finetune/` | `python -m interview.finetune.build_dataset` |
+| LoRA trainer (GPU) | `interview/finetune/train_lora.py` | `python -m interview.finetune.train_lora --dry-run` |
+| Document PDF | `interview/corpus/export_pdf.py` | `python -m interview.corpus.export_pdf` |
+| Offline tests (both engines) | `tests/` | `python -m unittest discover tests` |
+
+**After editing the corpus:** rebuild the index, rerun the retrieval eval, rebuild the
+dataset and the PDF. The index build embeds 163 answers and waits out the free-tier
+quota (100 embeddings/min), so it takes a couple of minutes.
+
+LangChain and LangGraph are real dependencies (~38 MB), but `interview/compat/` holds
+stdlib stand-ins with the same behaviour, chosen automatically if they are missing
+(or forced with `INTERVIEW_GRAPH_ENGINE=stdlib` / `INTERVIEW_CHAIN_ENGINE=stdlib`).
+LangGraph is imported on the first question, not at startup: it takes ~1.8 s to import
+cold, and the homepage should not pay that.
+
+## The resume assistant (fallback)
+
+The original assistant, still used when the interview agent is unavailable:
 
 ```
 question ──▶ BM25 over resume chunks ──▶ context block ──▶ provider chain ──▶ answer + source chips
@@ -56,7 +104,11 @@ question ──▶ BM25 over resume chunks ──▶ context block ──▶ pro
 
 `data/profile.py` is the single source of truth. The rendered pages, the retrieval
 index (`data/knowledge.py`) and the system prompt all derive from it, so the site and
-the chatbot can never disagree. **To update the portfolio, edit that one file.**
+this assistant can never disagree. **To update the portfolio, edit that one file.**
+The one exception is the hand-written interview corpus above: every answer names the
+resume facts it rests on (`Grounded in`) and the build rejects one that doesn't, but
+that is a rule, not a guarantee — when a fact in `profile.py` changes, grep the corpus
+for it too.
 
 The system prompt restricts answers to retrieved context, forbids inventing employers,
 dates or numbers, and tells the model to be honest about early-career level rather than

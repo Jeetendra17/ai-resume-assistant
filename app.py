@@ -3,6 +3,7 @@
 import os
 import time
 from collections import deque
+from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request, send_from_directory
 
@@ -37,6 +38,7 @@ from data.profile import (
 )
 
 app = Flask(__name__)
+ROOT = Path(__file__).parent
 
 
 def _measured_about():
@@ -70,6 +72,29 @@ def _measured_about():
             )
     except Exception:
         pass  # never let a stat break the page
+
+    try:
+        import json
+
+        results = json.loads((ROOT / "interview/retrieval/results.json").read_text(encoding="utf-8"))
+        recall = results["recall_at_3"]
+        if "interview retrieval recall@3" in by_label:
+            stat = by_label["interview retrieval recall@3"]
+            stat["value"] = f"{recall['live']['combined']:.0%}"
+            stat["detail"] = f"vs {recall['bm25']['combined']:.0%} for keyword search alone"
+    except Exception:
+        pass
+
+    try:
+        from interview.retrieval import hybrid
+
+        stats = hybrid.get_index().stats
+        if "interview questions" in by_label:
+            stat = by_label["interview questions"]
+            stat["value"] = str(stats["questions"])
+            stat["detail"] = f"{stats['pages']} pages at 500 words/page"
+    except Exception:
+        pass
 
     return about
 
@@ -139,7 +164,95 @@ def chat():
     history = payload.get("history")
     if not isinstance(history, list):
         history = []
-    return jsonify(llm.answer(question, history))
+    # History arrives from the browser, so it is trimmed and validated the same
+    # way the resume assistant does it before anything else sees it.
+    history = llm._normalise_history(history)
+
+    # The interview agent is imported on first use, not at startup: it pulls in
+    # LangGraph (~1.8 s to import cold), and the homepage should not pay that.
+    try:
+        from interview.graph import agent
+
+        return jsonify(agent.run(question, history))
+    except Exception as exc:  # the agent must never be the reason the chat breaks
+        app.logger.warning("interview agent failed, using resume assistant: %s", exc)
+        result = llm.answer(question, history)
+        result["engines"] = {"graph": None, "chain": None, "retrieval": "resume-bm25"}
+        result["outcome"] = "agent_unavailable"
+        return jsonify(result)
+
+
+# ── interview corpus ────────────────────────────────────────────────────────
+
+def _json_file(path):
+    import json
+
+    try:
+        return json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+@app.route("/api/interview/stats")
+def interview_stats():
+    """Corpus size, and the latest measured results of every evaluation."""
+    from interview.retrieval import hybrid
+
+    index = hybrid.get_index()
+    prompt_results = _json_file(ROOT / "interview/prompting/results.json") or {}
+    return jsonify({
+        "corpus": index.stats,
+        "parts": [{k: p[k] for k in ("part", "topic", "count", "intro")} for p in index.parts],
+        "retrieval": _json_file(ROOT / "interview/retrieval/results.json"),
+        "prompts": {
+            "selected": prompt_results.get("selected"),
+            "rule": prompt_results.get("rule"),
+            "versions": {
+                vid: {k: v[k] for k in v if k != "rows"}
+                for vid, v in (prompt_results.get("versions") or {}).items()
+            },
+        },
+        "finetune": _json_file(ROOT / "interview/finetune/data/stats.json"),
+    })
+
+
+@app.route("/api/interview/questions")
+def interview_questions():
+    """Every question in the corpus, grouped by part, without the answers."""
+    from interview.retrieval import hybrid
+
+    index = hybrid.get_index()
+    return jsonify([
+        {
+            "part": p["part"],
+            "topic": p["topic"],
+            "questions": [
+                {"id": d["id"], "question": d["question"], "difficulty": d["difficulty"]}
+                for d in index.by_part(p["part"])
+            ],
+        }
+        for p in index.parts
+    ])
+
+
+@app.route("/interview/document")
+def interview_document():
+    """The full corpus as a PDF, generated from the same sources the assistant uses."""
+    return send_from_directory(
+        os.path.join(app.static_folder, "files"),
+        "Jeetendra_Kumar_Patel_Interview_QA.pdf",
+        as_attachment=False,
+    )
+
+
+@app.route("/api/interview/answer/<qid>")
+def interview_answer(qid):
+    from interview.retrieval import hybrid
+
+    doc = next((d for d in hybrid.get_index().docs if d["id"] == qid), None)
+    if doc is None:
+        return jsonify({"error": "unknown question"}), 404
+    return jsonify({k: doc[k] for k in ("id", "question", "answer", "follow_up", "grounded_in", "topic")})
 
 
 @app.route("/api/health")

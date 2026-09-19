@@ -53,6 +53,8 @@
     <g id="i-user"><circle cx="10" cy="7" r="3.2"/><path d="M4 16.5a6 6 0 0 1 12 0"/></g>
     <g id="i-sun"><circle cx="10" cy="10" r="3.6"/><path d="M10 1.8v2.1M10 16.1v2.1M18.2 10h-2.1M3.9 10H1.8M15.8 4.2l-1.5 1.5M5.7 14.3l-1.5 1.5M15.8 15.8l-1.5-1.5M5.7 5.7 4.2 4.2"/></g>
     <g id="i-moon"><path d="M16.5 11.8A7 7 0 0 1 8.2 3.5a7 7 0 1 0 8.3 8.3z"/></g>
+    <g id="i-graph"><circle cx="5" cy="5" r="2.2"/><circle cx="15" cy="5" r="2.2"/><circle cx="10" cy="15" r="2.2"/><path d="M7.2 5h5.6M6.2 6.9l2.6 6M13.8 6.9l-2.6 6"/></g>
+    <g id="i-doc"><path d="M5.5 2.5h6l3.5 3.5v11.5h-9.5z"/><path d="M11.5 2.5V6H15M8 10h5M8 13h5"/></g>
   </defs>
 </svg>
 
@@ -336,6 +338,75 @@
         </div>
       </section>
 
+      <!-- ══════════ INTERVIEW LAB ══════════ -->
+      {# Everything numeric in this section is loaded from the evaluation result
+         files at view time (/api/interview/stats), never typed into the page, so
+         it cannot drift from what was actually measured. #}
+      <section class="section" id="s-interview">
+        <div class="hero small">
+          <span class="eyebrow">
+            <svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-graph"/></svg> Interview Lab
+          </span>
+          <h1>Ask what a recruiter would ask</h1>
+          <p class="display-sub">
+            The assistant on this site answers from a corpus of the questions people actually ask
+            about me &mdash; about a hundred pages of them &mdash; through a LangGraph agent over hybrid
+            retrieval. Every number below comes from an evaluation run, and every answer shows the
+            path it took.
+          </p>
+        </div>
+
+        <div class="grid metrics lab-stats" id="labStats" aria-live="polite">
+          <article class="card metric"><p class="metric-value" data-stat="questions">&ndash;</p><p class="metric-label">questions &amp; answers</p><p class="metric-trend" data-stat="pages">&nbsp;</p></article>
+          <article class="card metric"><p class="metric-value" data-stat="recall">&ndash;</p><p class="metric-label">retrieval recall@3</p><p class="metric-trend" data-stat="recall-detail">&nbsp;</p></article>
+          <article class="card metric"><p class="metric-value" data-stat="decision">&ndash;</p><p class="metric-label">answer-or-decline accuracy</p><p class="metric-trend" data-stat="decision-detail">&nbsp;</p></article>
+          <article class="card metric"><p class="metric-value" data-stat="finetune">&ndash;</p><p class="metric-label">fine-tuning examples</p><p class="metric-trend" data-stat="finetune-detail">&nbsp;</p></article>
+        </div>
+
+        <div class="block-head"><h3>How a question is answered</h3><span class="muted small">A LangGraph state machine</span></div>
+        <div class="card lab-flow">
+          <ol class="agent-flow" aria-label="Agent pipeline">
+            <li><strong>route</strong><span>Empty or oversized question? Decline before anything runs.</span></li>
+            <li><strong>retrieve</strong><span>Embeddings + BM25, fused by rank. If the embedding call fails, BM25 + LSA take over locally.</span></li>
+            <li><strong>grade</strong><span>Enough evidence to answer? If not, a follow-up is re-read with the previous question once; otherwise decline.</span></li>
+            <li><strong>generate</strong><span>LangChain chain: retrieved entries + two retrieved examples &rarr; the model, via the Groq &rarr; Gemini failover chain.</span></li>
+            <li><strong>verify</strong><span>Every number must appear in the sources; every citation must point at a retrieved entry. One regeneration, then the source is quoted instead.</span></li>
+          </ol>
+          <p class="lab-note">
+            Ask something in the chat below and open <em>How this was answered</em> under the reply to see
+            the exact path, engines and timings for that answer.
+          </p>
+        </div>
+
+        <div class="block-head"><h3>Measured, not claimed</h3><span class="muted small">Loaded from the latest evaluation runs</span></div>
+        <div class="grid two">
+          <article class="card">
+            <p class="card-eyebrow">Retrieval &middot; recall@3 on reworded questions</p>
+            <div class="table-wrap"><table class="lab-table" id="retrievalTable"><tbody><tr><td class="muted">Loading&hellip;</td></tr></tbody></table></div>
+            <p class="muted small mt">Keyword search alone finds the right answer for under half of questions phrased the
+              way visitors phrase them. Embeddings close that gap; the keyword pass stays at a quarter weight.</p>
+          </article>
+          <article class="card">
+            <p class="card-eyebrow">Prompt versions &middot; scored end to end</p>
+            <div class="table-wrap"><table class="lab-table" id="promptTable"><tbody><tr><td class="muted">Loading&hellip;</td></tr></tbody></table></div>
+            <p class="muted small mt" id="promptNote">Each version records the failure it was written to fix.</p>
+          </article>
+        </div>
+
+        <div class="card lab-finetune" id="finetuneCard">
+          <p class="card-eyebrow">Fine-tuning</p>
+          <p class="lede" id="finetuneText">Loading&hellip;</p>
+        </div>
+
+        <div class="block-head">
+          <h3>Browse the corpus</h3>
+          <a class="btn btn-ghost btn-sm" href="{{ url_for('interview_document') }}" target="_blank" rel="noopener">
+            <svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-doc"/></svg> Full document (PDF)
+          </a>
+        </div>
+        <div class="corpus" id="corpus"><p class="muted small">Loading questions&hellip;</p></div>
+      </section>
+
       <!-- ══════════ CASE STUDY ══════════ -->
       <section class="section" id="s-about">
         <div class="hero small">
@@ -571,7 +642,7 @@
       <div class="chatpanel" id="chatPanel" hidden>
         <div class="chatpanel-head">
           <div>
-            <strong>Resume assistant</strong>
+            <strong>Ask about Jeetendra</strong>
             <span class="engine-badge sm">
               <span class="dot{% if not engine.live %} off{% endif %}" data-engine-dot></span><span data-engine-name>{{ engine.provider }}</span>
             </span>
@@ -592,7 +663,7 @@
           <svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-send"/></svg>
         </button>
       </form>
-      <p class="composer-note">Grounded in the resume. Answers may be imperfect — verify anything critical.</p>
+      <p class="composer-note">Grounded in his record, with sources and a trace on every answer. Verify anything critical.</p>
     </div>
   </main>
 </div>

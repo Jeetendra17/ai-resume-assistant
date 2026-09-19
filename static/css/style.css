@@ -1242,6 +1242,155 @@ h1, h2, h3, h4, p { margin: 0; }
   color: var(--ink-4);
 }
 
+/* Source chips carry full question titles now; keep them to one line. */
+.source { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── answer trace ("How this was answered") ────────────────────────────── */
+
+.trace { margin-top: var(--s-3); border-top: 1px dashed var(--line); padding-top: var(--s-2); }
+.trace > summary {
+  cursor: pointer;
+  font-size: var(--t-micro); font-weight: 600;
+  letter-spacing: .04em; text-transform: uppercase;
+  color: var(--ink-3);
+  list-style: none;
+}
+.trace > summary::-webkit-details-marker { display: none; }
+.trace > summary::before { content: "\203A  "; display: inline-block; transition: transform .15s var(--ease); }
+.trace[open] > summary::before { transform: rotate(90deg); }
+.trace-outcome { margin: var(--s-2) 0 var(--s-2); font-size: var(--t-xs); color: var(--ink-2); }
+.trace-path {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+}
+.trace-node {
+  display: inline-flex; align-items: baseline; gap: 5px;
+  padding: 2px var(--s-2);
+  border-radius: var(--r-xs);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: var(--t-micro);
+  cursor: help;
+}
+.trace-node + .trace-node::before { content: "\2192"; color: var(--ink-4); margin: 0 6px 0 -2px; }
+.trace-name { font-weight: 600; color: var(--ink); }
+.trace-ms { color: var(--ink-4); font-variant-numeric: tabular-nums; }
+.n-refuse .trace-name, .n-fallback .trace-name { color: var(--amber); }
+.n-verify .trace-name { color: var(--green); }
+.trace-meta { display: flex; flex-wrap: wrap; gap: 4px; margin-top: var(--s-2); }
+.trace-meta .pill { font-size: var(--t-micro); padding: 2px 7px; }
+.msg.bot .bubble .pill { background: var(--surface); }
+
+/* ── Interview Lab ─────────────────────────────────────────────────────── */
+
+.lab-stats { margin-bottom: var(--s-1); }
+.lab-stats .metric-value { color: var(--violet); }
+
+.agent-flow {
+  list-style: none; margin: 0; padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--s-2);
+  counter-reset: node;
+}
+.agent-flow li {
+  position: relative;
+  padding: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--surface-2);
+  counter-increment: node;
+}
+.agent-flow li strong {
+  display: flex; align-items: center; gap: var(--s-2);
+  font-size: var(--t-sm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--ink);
+}
+.agent-flow li strong::before {
+  content: counter(node);
+  width: 20px; height: 20px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 6px;
+  background: var(--violet-soft); color: var(--violet);
+  font-family: Inter, sans-serif; font-size: var(--t-micro); font-weight: 700;
+}
+.agent-flow li span { display: block; margin-top: 6px; font-size: var(--t-xs); line-height: 1.5; color: var(--ink-3); }
+.lab-note { margin-top: var(--s-4); font-size: var(--t-sm); color: var(--ink-3); }
+
+.table-wrap { overflow-x: auto; margin: 0 calc(-1 * var(--s-1)); }
+.lab-table { width: 100%; border-collapse: collapse; font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
+.lab-table th {
+  text-align: left; font-weight: 600;
+  font-size: var(--t-micro); letter-spacing: .05em; text-transform: uppercase;
+  color: var(--ink-4);
+  padding: var(--s-1) var(--s-2) var(--s-2);
+  border-bottom: 1px solid var(--line);
+}
+.lab-table td { padding: 7px var(--s-2); border-bottom: 1px solid var(--line-soft); color: var(--ink-2); }
+.lab-table td:not(:first-child), .lab-table th:not(:first-child) { text-align: right; white-space: nowrap; }
+.lab-table tr.is-live td { background: var(--violet-soft); color: var(--ink); font-weight: 600; }
+.lab-table tr:last-child td { border-bottom: 0; }
+
+.lab-finetune { margin-top: var(--s-3); }
+
+.corpus { display: flex; flex-direction: column; gap: var(--s-2); }
+.part-block {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+.part-block > summary {
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  cursor: pointer; list-style: none;
+}
+.part-block > summary::-webkit-details-marker { display: none; }
+.part-block > summary:hover { background: var(--surface-inset); }
+.part-num {
+  flex: none;
+  font-size: var(--t-micro); font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--violet);
+}
+.part-topic { font-weight: 600; font-size: var(--t-base); }
+.part-count {
+  margin-left: auto;
+  padding: 1px var(--s-2);
+  border-radius: var(--r-full);
+  background: var(--surface-2); border: 1px solid var(--line);
+  font-size: var(--t-micro); color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.qa-list { border-top: 1px solid var(--line-soft); }
+.qa { border-bottom: 1px solid var(--line-soft); }
+.qa:last-child { border-bottom: 0; }
+.qa > summary {
+  padding: 10px var(--s-4) 10px var(--s-7);
+  cursor: pointer; list-style: none;
+  font-size: var(--t-sm); color: var(--ink-2);
+  position: relative;
+}
+.qa > summary::-webkit-details-marker { display: none; }
+.qa > summary::before {
+  content: "\203A"; position: absolute; left: var(--s-4); top: 9px;
+  color: var(--ink-4); transition: transform .15s var(--ease);
+}
+.qa[open] > summary::before { transform: rotate(90deg); }
+.qa > summary:hover { color: var(--ink); background: var(--surface-inset); }
+.qa[open] > summary { color: var(--ink); font-weight: 600; }
+.qa-body {
+  padding: var(--s-1) var(--s-5) var(--s-4) var(--s-7);
+  font-size: var(--t-sm); line-height: 1.65; color: var(--ink-2);
+  max-width: 80ch;
+}
+.qa-body p { margin: 0 0 var(--s-2); }
+.qa-body ul { margin: var(--s-1) 0 var(--s-2); padding-left: var(--s-5); }
+.qa-body li { margin-bottom: var(--s-1); }
+.qa-body strong { color: var(--ink); }
+.qa-follow { padding-top: var(--s-2); border-top: 1px dashed var(--line); }
+.qa-grounded { font-size: var(--t-xs); color: var(--ink-4); }
+
 /* ── scrollbars (WebKit; Firefox uses scrollbar-color above) ───────────── */
 
 .scroll::-webkit-scrollbar,
