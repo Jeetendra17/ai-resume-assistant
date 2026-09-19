@@ -424,8 +424,9 @@ answer exists, and a refusal where it should be. This is the number a user exper
 calls and latency. An agent that is correct but takes three loops on most questions has a latency problem that no
 end-to-end accuracy number shows.
 
-**Termination.** Every loop must end. His graph caps retries at two and ends in a refusal rather than a third attempt,
-and that cap is itself something to test: feed it a question that can never retrieve well and confirm it stops.
+**Termination.** Every loop must end. His graph allows one query rewrite and one regeneration, then
+declines or quotes the source, and those caps are themselves tested: his suite feeds it an answer with an
+invented number and asserts it regenerates exactly once and then falls back.
 
 This is why the graph returns a trace of which nodes ran. Without it, evaluating an agent means evaluating only its final
 output, which hides most of the ways it can go wrong.

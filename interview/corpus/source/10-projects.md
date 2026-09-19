@@ -28,9 +28,10 @@ engineering. It is the same instinct that produced the eval sets on everything e
 
 Where it sits in his record: this is the project that demonstrates the conventional RAG stack —
 embeddings, a managed vector database, LangChain, a hosted model. It is the counterpart to the Pulsar
-chatbot, which had to do the same job with none of those available, and to this site's assistant,
-which deliberately uses none of them because the corpus is thirty chunks. Having built all three is
-what lets him argue about when each is appropriate rather than defending one as correct.
+chatbot, which had to do the same job with none of those available, and to this site's original
+resume assistant, which deliberately used none of them because its corpus was thirty chunks. Having
+built all three is what lets him argue about when each is appropriate rather than defending one as
+correct — and the site itself switched to embeddings once its corpus grew and measurement said to.
 
 What it does not have: it is a self-directed project rather than a product, so it has no real users,
 no operational history, and no exposure to the failure modes that only appear over time. He would
@@ -352,9 +353,12 @@ Three retrieval systems with three different architectures, and a measurement ha
 through all of them.
 
 **The progression.** The document Q&A chatbot is the conventional stack — embeddings, Pinecone,
-LangChain, a hosted model. This site's assistant is the opposite: no embeddings, no vector database,
-no framework, no required API key, because the corpus is thirty chunks and the conventional stack
-would have added cost and failure modes for unmeasurable gain. The Pulsar chatbot at work is a third
+LangChain, a hosted model. This site's resume assistant was the opposite: no embeddings, no vector
+database, no framework, no required API key, because its corpus was thirty chunks and the
+conventional stack would have added cost and failure modes for unmeasurable gain. When the site's
+corpus grew to 163 questions and answers, keyword search found the right answer for under half of reworded questions and
+embeddings for about nine in ten, so the live assistant now leads with embeddings — same principle, different
+corpus, different answer. The Pulsar chatbot at work is a third
 point — embeddings and a vector store, but everything running locally inside an on-premise deployment
 because no outbound call is permitted.
 

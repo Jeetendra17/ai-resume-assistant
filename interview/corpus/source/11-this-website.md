@@ -13,35 +13,45 @@
 
 **Answer.**
 
-Five steps, and every one of them runs even when no model is available.
+A LangGraph agent over about a hundred pages of questions and answers about his record. Every step
+has a fallback, so the chat answers even when parts of it are down.
 
-**1. Question.** A visitor asks something in plain language — "is he a fit?", not resume keywords.
+**1. Route.** An empty or oversized question is turned away before anything runs.
 
-**2. Retrieve.** A BM25 index scores every resume chunk in-process. A synonym layer maps hiring
-language onto resume vocabulary, with light stemming and phrase normalisation in front of it. This
-takes about 0.04 milliseconds and never touches the network.
+**2. Retrieve.** The question is embedded and compared with every answer in the corpus, and a BM25
+keyword pass votes alongside at a quarter weight, fused by rank. Measured on questions reworded the
+way visitors actually type, this finds the right answer in the top three about nine times in ten, against roughly half
+for keyword search alone. The embedding call has a two-second deadline; if it misses, BM25 and a
+local latent-semantic index answer in milliseconds instead.
 
-**3. Ground.** The top chunks become a labelled context block. The system prompt states that this
-block is the complete record and forbids inventing employers, dates, titles, tools or numbers. If
-retrieval found nothing and there is no conversation history, the app declines right here, with no
-model call at all.
+**3. Grade.** If there is not enough evidence to answer, a follow-up is re-read with the previous
+question once; otherwise the assistant declines without calling a model at all.
 
-**4. Generate.** The first healthy provider in the chain answers. Nine providers sit behind one
-adapter — Groq, Gemini, Cerebras, OpenRouter, Mistral, Together, Ollama, Anthropic and OpenAI — and
-a failure on one falls through to the next. If every one fails, the retrieved resume text is
-returned directly instead of an error.
+**4. Generate.** A LangChain chain assembles the retrieved answers, two retrieved examples of good
+answers, and a versioned prompt chosen by a scored evaluation, then sends them to the first healthy
+provider — Groq, then Gemini, and seven more behind the same adapter. The prompt tells the model to
+decline anything outside his professional record.
 
-**5. Cite.** The response carries the titles of the resume sections it drew on, and names the engine
-that actually produced it, so a visitor can check both the claim and the source.
+**5. Verify.** Every number in the answer must appear in the retrieved sources, and every citation
+must point at a retrieved entry. A failure triggers one stricter regeneration, then the source is
+quoted instead.
 
-Underneath all of it is one design rule: a single module, `data/profile.py`, is the source of truth.
-The rendered pages, the retrieval index, the system prompt and now the resume PDF all derive from
-it, so it is structurally impossible for the site and the assistant to disagree.
+Each answer carries its citations and a trace of the path it took — nodes, engines, prompt version,
+timings — under "How this was answered". If the agent itself were ever unavailable, the chat falls
+back to the site's original assistant: BM25 over resume chunks, which still passes its own 36-case
+evaluation.
 
-**Follow-up.** *"What happens if I ask something the resume doesn't cover?"* — It says so and gives
-his email. Try it; that behaviour has seven dedicated cases in the evaluation suite.
+The honest caveat: the site's rule has been that one module, `data/profile.py`, is the source of
+truth for the pages, the resume index, the system prompt and the resume PDF. The interview corpus is
+a second, hand-written source, so the two could in principle drift apart. What contains that is that
+every corpus answer lists the resume facts it rests on, and the build refuses an answer that lists
+none — a discipline, not a structural guarantee.
 
-**Grounded in.** About section pipeline (question, retrieve, ground, generate, cite), core/rag.py, core/llm.py, core/providers.py, profile.py as single source of truth
+**Follow-up.** *"What happens if I ask something his record doesn't cover?"* — It says so and gives
+his email. Declining is measured: the model declined all 12 out-of-scope test questions in the
+prompt evaluation, including personal ones that retrieval alone could not tell apart from real ones.
+
+**Grounded in.** Interview agent (route, retrieve, grade, generate, verify), retrieval eval (embeddings vs keyword-only recall@3), prompt eval decline results, provider chain, resume-index fallback with 36-case eval
 
 ### Q11.2 — Why nine model providers? Isn't that over-engineering for a portfolio?
 
@@ -111,6 +121,13 @@ is to keep something current, the more likely it is to stay current.
 The trade-off, which he would acknowledge: it couples everything to one module's shape. Changing a
 field name touches the template, the chunker and the resume builder. For a system this size that is a
 good trade. For a large system it would argue for a schema with validation.
+
+And there is now one deliberate exception, which he would rather state than hide: the interview corpus
+behind the assistant is written by hand, in Markdown, because a hundred pages of considered answers
+cannot be generated from a list of facts without reading like it. That makes it a second source that
+could drift from the profile. It is contained by rule rather than by structure — every answer names the
+resume facts it rests on, and the build refuses one that names none — which is weaker than the
+guarantee the rest of the site has, and he says so.
 
 **Follow-up.** *"Does the eval run when the profile changes?"* — It should, and the README says to. It
 is not enforced in CI yet, which is on the roadmap.

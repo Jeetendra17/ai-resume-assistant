@@ -76,10 +76,13 @@ operator describes their intent and how the schema encodes it is genuinely seman
 embedding-based retrieval over a vector store. Same engineer, opposite choice, because the corpora
 are different.
 
-He is also explicit about when this decision expires. The site's own roadmap says to move to
-hybrid retrieval — BM25 plus embeddings — once the corpus grows past a few hundred chunks, and the
-interface is already shaped for it. The interview corpus you are reading is precisely that growth,
-which is why the retrieval built over it is hybrid rather than lexical alone.
+He was also explicit about when the decision would expire, and it has. The site's roadmap said to
+move beyond BM25 once the corpus grew past a few hundred chunks. The interview corpus behind this
+assistant is that growth — 163 questions and answers — and he measured before switching: on
+questions reworded the way visitors actually type them, BM25 found the right answer in the top
+three less than half the time and embeddings about nine times in ten. So the live assistant now leads with embeddings, and the
+original BM25 resume index remains as the fallback that works with no network at all. Same
+principle both times: choose from the corpus, and measure.
 
 **Follow-up.** *"Is BM25 not just keyword matching?"* — It is lexical, but it weights terms by
 inverse document frequency and normalises for document length, so a rare discriminating term
@@ -154,22 +157,26 @@ similarities are on incomparable scales with no meaningful calibration between t
 weighted-sum approach requires tuning a normalisation that drifts the moment you change the
 embedding model. RRF sidesteps it entirely by only using the ordering.
 
-Where he uses it: over the interview corpus that backs this assistant. The portfolio resume index
-is thirty chunks and BM25 alone measured better than adding complexity to it, but the interview
-corpus is several hundred chunks with a much wider range of phrasing, which is exactly the
-crossover point his own roadmap had identified — the site's write-up said to move to hybrid once
-the corpus grew past a few hundred chunks, and it did.
+Where he uses it: over the interview corpus behind this assistant, and the way he tuned it is the
+interesting part, because the result was not what the textbook predicts. He measured every
+combination on 52 reworded questions plus 14 exact-term ones — tool names, numbers, identifiers.
+Embeddings alone scored about nine in ten. Fusing BM25 in at equal weight *lowered* that slightly, because on this
+corpus the embedding model handled exact terms as well as BM25 did, so an equal
+lexical vote only diluted the ranking. BM25 at a quarter weight cost nothing measurable, and he kept
+it there as insurance for identifiers an embedding model has never seen — a case his eval does not
+cover, which he says openly rather than claiming it was measured.
 
-The implementation detail he would highlight: the semantic half of it runs with no external
-service and no embedding API, because this site's whole design principle is that retrieval must
-never depend on the network. The vectors are built offline and shipped as a compact artifact, and
-query-time scoring is plain arithmetic in-process.
+The engineering around it follows the site's principle that nothing may *depend* on the network.
+Documents are embedded once, offline, and shipped as a compact artifact; only the visitor's question
+is embedded at answer time, against a hard two-second deadline. If that call fails, times out or hits
+the free-tier quota, retrieval falls back to BM25 plus a corpus-only latent-semantic index computed
+in-process, and the answer's trace says so.
 
-**Follow-up.** *"Why not just use embeddings for everything?"* — Because exact-term misses are the
-complaint users actually report, and they are the ones pure dense retrieval is worst at. Hybrid is
-cheap insurance.
+**Follow-up.** *"So is hybrid retrieval overrated?"* — Not in general; it depends on the corpus and
+the embedding model, which is the point of measuring. On this corpus, equal-weight fusion made
+things slightly worse, and assuming otherwise would have shipped a worse system.
 
-**Grounded in.** Interview corpus hybrid retrieval, portfolio assistant BM25, site roadmap on hybrid retrieval
+**Grounded in.** Interview retrieval eval (52 reworded + 14 exact-term questions), live weights dense 1.0 / BM25 0.25, embedding fallback to BM25 + LSA, 2-second embedding deadline
 
 ### Q3.5 — How does he measure whether retrieval is working?
 

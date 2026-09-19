@@ -141,10 +141,11 @@ The honest state of it:
 
 **What is real and running:** the assistant answering this question routes through a LangGraph
 agent over the interview corpus. It is a genuine stateful graph — route the question, retrieve,
-grade whether the retrieved material actually supports an answer, rewrite the query and retrieve
-again if not, generate, verify the answer against its citations, and either finish or retry within
-a bounded number of iterations. The node trace is available with the response, so you can see which
-path your question took.
+grade whether there is enough evidence to answer, re-read a follow-up with the previous question if
+needed, generate, verify the answer's numbers and citations against its sources, and either finish,
+regenerate once, or quote the source instead. It runs on real LangGraph where installed, with a
+standard-library stand-in of the same graph when not. The node trace is returned with every answer,
+so you can see which path your question took.
 
 **What is training:** LangGraph is part of the AI Engineer Bootcamp 2026 syllabus he is working
 through.
@@ -162,7 +163,8 @@ So: real working code you can interrogate, on a personal system, not production 
 hiring for deep agent experience should treat this as competence rather than expertise.
 
 **Follow-up.** *"What would you ask to test it?"* — Ask what his graph does when retrieval comes back
-weak twice in a row. The answer is specific: it stops rather than looping, and returns a refusal.
+weak. The answer is specific: it re-reads the question with the previous one only if it is a
+follow-up, at most once, and otherwise declines without spending a model call.
 
 **Grounded in.** Interview assistant LangGraph agent, AI Engineer Bootcamp syllabus, "exploring LangGraph" on resume, Pulsar chatbot architecture
 
@@ -175,45 +177,50 @@ weak twice in a row. The answer is specific: it stops rather than looping, and r
 **Answer.**
 
 It is a stateful graph over the interview corpus, and the design is deliberately conservative —
-loops are bounded and every path terminates in either an answer or a refusal.
+every loop is bounded, and every path ends in an answer, a refusal, or a quoted source.
 
-The state carries the question, the queries tried so far, retrieved documents, an attempt counter,
-the draft answer, its citations, and a trace of nodes visited.
+The state carries the question, the conversation so far, the query being searched, the retrieved
+entries, rewrite and regeneration counters, the draft answer with its citations, and a trace of every
+node that ran with its timing.
 
 The nodes:
 
-**Route.** Decides whether the question is in scope at all. Questions with no plausible match go
-straight to a refusal without spending a model call — the same principle as the resume assistant,
-where declining deterministically is both cheaper and more correct.
+**Route.** Rejects an empty or oversized question before anything else runs.
 
-**Retrieve.** Hybrid retrieval over the corpus: a lexical pass and a semantic pass, fused by rank.
-Both run in-process with no external service.
+**Retrieve.** Embeddings plus BM25 over the corpus, fused by rank. If the embedding call misses its
+two-second deadline or fails, BM25 plus a corpus-only latent-semantic index take over in-process.
 
-**Grade.** Judges whether what came back actually supports an answer. This is the node that makes it
-a graph rather than a chain — its outcome determines the next edge.
+**Grade.** Decides whether there is enough evidence to answer at all. This is the node that makes it
+a graph rather than a chain — its outcome picks the next edge: generate, rewrite, or refuse without
+spending a model call.
 
-**Rewrite.** If grading fails, reformulate the query and retrieve again. This is the cycle, and it is
-capped. Two failed attempts ends in a refusal rather than a third try, because a system that keeps
-trying is a system that eventually produces something regardless of whether it should.
+**Rewrite.** Deliberately narrow: only for follow-ups. "How long did that take?" retrieves nothing on
+its own, but does when read together with the previous question. It runs at most once, and it never
+paraphrases a standalone question into something the corpus happens to match — that would turn a
+correct decline into a stretched answer.
 
-**Generate.** Produce the answer constrained to the retrieved passages.
+**Generate.** A LangChain chain: the retrieved entries, two retrieved examples of good answers, and a
+versioned prompt, sent through the Groq-then-Gemini provider chain. The prompt tells the model to
+decline anything outside his professional record, which is where questions like "is he married" are
+caught — similarity scores alone cannot separate those from real questions.
 
-**Verify.** Check the answer's claims against the citations it carries. A claim that is not supported
-sends it back or triggers a refusal.
+**Verify.** Every number in the answer must appear in the retrieved entries, and every citation must
+point at an entry that was actually retrieved. On a failure it regenerates once with a stricter
+instruction; if that also fails, it quotes the source entry instead of the generated answer.
 
-The reason for the verify node specifically: the failure mode of this whole class of system is a
-fluent answer that is not supported by its sources, and the only defence is checking rather than
-trusting. It is the same reasoning behind validating generated templates against the schema on the
-Pulsar chatbot.
+The verify node exists because the failure mode of this whole class of system is a fluent answer that
+is not supported by its sources, and the only defence is checking rather than trusting. It is the same
+reasoning behind validating generated templates against the schema on the Pulsar chatbot. It checks
+what is checkable without another model call — invented figures above all, which are the fabrication a
+recruiter is most likely to act on — and it does not claim to check meaning.
 
-The trace of which nodes ran is returned with the answer, which turns an opaque generation into
-something you can inspect.
+The trace of which nodes ran is returned with every answer: open "How this was answered" under a reply
+to see it.
 
-**Follow-up.** *"What happens when the model provider is down?"* — It degrades to returning the
-retrieved corpus material directly, the same as the resume assistant. The graph runs; only the
-generation node has a fallback.
+**Follow-up.** *"What happens when the model provider is down?"* — Generation falls back to quoting the
+best-matching corpus entry directly, labelled as such. Retrieval and the rest of the graph still run.
 
-**Grounded in.** Interview assistant graph design, hybrid retrieval, bounded retry, portfolio assistant refusal and fallback design
+**Grounded in.** Interview agent graph (route, retrieve, grade, rewrite, generate, verify, refuse, fallback), one rewrite and one regeneration cap, numeric and citation verification, embedding deadline and fallback
 
 ### Q6.6 — When is an agent the wrong architecture?
 
@@ -247,7 +254,8 @@ typed arguments and human confirmation for anything irreversible — and he has 
 those properties, so he would not propose one lightly.
 
 **When you cannot bound the cost.** An unbounded loop is a denial-of-wallet incident. Every cycle
-needs an iteration cap, and his own graph caps at two retries for exactly that reason.
+needs an iteration cap, and his own graph allows exactly one query rewrite and one regeneration for
+that reason.
 
 Where an agent does earn it: retrieval that may need reformulation, tasks that decompose into
 sub-tasks of unknown number, and workflows with genuine branching. The graph on this site qualifies
@@ -256,9 +264,10 @@ narrowly — it has one real decision point, whether the retrieved material is g
 His general position: start with the chain, and add the graph when you find the decision point that
 justifies it. Not the other way round.
 
-**Follow-up.** *"Why is the site's assistant a graph then?"* — Because query rewriting on weak
-retrieval is a real decision point, and because a portfolio is a reasonable place to demonstrate the
-technique. He would flag that as a legitimate reason and not pretend it was purely necessity.
+**Follow-up.** *"Why is the site's assistant a graph then?"* — Because two decisions depend on what an
+earlier step produced — whether to generate at all, and whether to accept an answer after checking it —
+and one of them loops. Also because a portfolio is a reasonable place to demonstrate the technique; he
+would flag that as a legitimate reason and not pretend it was purely necessity.
 
 **Grounded in.** Pulsar chatbot chain architecture, interview assistant graph with bounded retry, no-tool design
 

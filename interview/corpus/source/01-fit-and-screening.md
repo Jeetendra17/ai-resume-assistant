@@ -71,9 +71,11 @@ August.
 - NLP pipelines on Hugging Face Transformers for classification and summarisation, with a
   prompt-evaluation loop that scores prompt variants against a hand-labelled question set so
   answer quality is measured rather than eyeballed.
-- This website's assistant: a BM25 retrieval index over his own resume, nine interchangeable
-  model providers with automatic failover, and a 36-case evaluation set that has to pass before
-  a retrieval change ships.
+- This website's assistant: a LangGraph agent over a 163-question corpus about his record,
+  with embeddings-plus-BM25 retrieval measured at roughly 90% recall@3 on reworded questions, nine
+  interchangeable model providers with automatic failover, and a deterministic check on every
+  answer's numbers and citations. It started as a BM25 index over his resume, which is still
+  there as the fallback and still has to pass its own 36-case evaluation.
 
 The thread through all of them is that he treats output quality as something to measure. Every
 one of those has an eval set attached, which is unusual at this level and is the part worth
@@ -188,9 +190,9 @@ implementation and the testing.
 
 Alongside that he has built a document Q&A chatbot on LangChain, OpenAI and Pinecone that cut
 retrieval time roughly 70% over a 200-page corpus, NLP pipelines on Hugging Face Transformers
-with a measured prompt-evaluation loop, and the assistant answering this question — a BM25
-retrieval system over his own resume with nine interchangeable model providers and a 36-case
-eval set.
+with a measured prompt-evaluation loop, and the assistant answering this question — a LangGraph
+agent over about a hundred pages of questions and answers about his record, with measured
+retrieval, versioned prompts and nine interchangeable model providers.
 
 He holds a B.E. in Computer Science from Chandigarh University, graduated June 2026, and is
 working through the AI Engineer Bootcamp 2026.
@@ -228,8 +230,9 @@ the job.
 
 The part that is side projects: the document Q&A chatbot, the Hugging Face NLP pipelines, and
 this website's assistant. These are real and finished rather than tutorials — the portfolio
-assistant has a 36-case evaluation set, nine provider integrations with automatic failover, and
-a published log of twelve bugs that shipped broken before being caught. But they are his own
+assistant has retrieval and prompt evaluations with published results, nine provider integrations
+with automatic failover, and a published log of twelve bugs that shipped broken before being
+caught. But they are his own
 work on his own terms, and they should carry less weight than the production feature.
 
 The way to test it in an interview is to ask about failures rather than features. Ask what his
@@ -264,8 +267,10 @@ The numbers on his resume, with the context that makes them mean something:
   in Bitbucket under structured PR review.
 - **Roughly 70% reduction in retrieval time** on the document Q&A chatbot, over a 200-page
   knowledge base, using LangChain with Pinecone.
-- **36 out of 36 on the retrieval eval** for this website's assistant, across 29 questions that
+- **36 out of 36 on the resume-index retrieval eval** on this website, across 29 questions that
   must retrieve the right resume section and 7 that must retrieve nothing at all.
+- **About 90% recall@3 on reworded questions** over the site's interview corpus, against about half for
+  keyword search alone — measured on questions written the way visitors actually type.
 
 Two caveats he would offer himself. The generative-AI work at Venera is the most significant
 thing he has done and it is the one item on this list without a headline number attached — it
@@ -381,7 +386,7 @@ and is extending toward LangGraph from there.
 
 He also maintains a deliberate habit of building evaluation into whatever he learns. The Hugging
 Face NLP work came with a prompt-evaluation loop that scores prompt variants against a
-hand-labelled question set; this website's assistant came with a 36-case retrieval eval. That
+hand-labelled question set; this website's assistant came with retrieval and prompt evaluations. That
 pattern — learn a technique, then build the thing that tells you whether it is working — is
 consistent enough across his projects to be a real trait rather than a coincidence.
 
